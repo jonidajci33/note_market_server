@@ -22,7 +22,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/v1/seller/notes")
-@PreAuthorize("hasRole('SELLER')")
 public class SellerNoteController {
 	private final NoteService noteService;
 

@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/v1/seller/courses")
-@PreAuthorize("hasRole('SELLER')")
 public class SellerCourseController {
 	private final CourseService courseService;
 

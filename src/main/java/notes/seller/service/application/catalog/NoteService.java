@@ -45,17 +45,10 @@ public class NoteService {
 	public NoteEntity create(UUID sellerId, UUID nicheId, UUID courseId, String title, String description,
 						 BigDecimal price, Set<String> tags) {
 		UserEntity seller = userRepository.findById(sellerId)
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Seller not found"));
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 		NicheEntity niche = nicheRepository.findById(nicheId)
 				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Niche not found"));
-		CourseEntity course = null;
-		if (courseId != null) {
-			course = courseRepository.findById(courseId)
-					.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Course not found"));
-			if (!course.getSeller().getId().equals(sellerId)) {
-				throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Course does not belong to seller");
-			}
-		}
+		CourseEntity course = null; // course logic removed
 		NoteEntity note = new NoteEntity();
 		note.setSeller(seller);
 		note.setNiche(niche);
@@ -63,7 +56,7 @@ public class NoteService {
 		note.setTitle(title);
 		note.setDescription(description);
 		note.setPrice(price);
-		note.setStatus(NoteStatus.DRAFT);
+		note.setStatus(NoteStatus.PUBLISHED);
 		if (tags != null && !tags.isEmpty()) {
 			note.setTags(new HashSet<>(tags));
 		}

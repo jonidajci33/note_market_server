@@ -28,22 +28,29 @@ public class CatalogQueryService {
 
 	public Page<NoteEntity> findNotes(UUID nicheId, UUID sellerId, BigDecimal minPrice, BigDecimal maxPrice,
 							 String query, List<String> tags, Pageable pageable) {
-		Specification<NoteEntity> spec = Specification.where(NoteSpecifications.hasStatus(NoteStatus.PUBLISHED))
-				.and(NoteSpecifications.hasNiche(nicheId))
-				.and(NoteSpecifications.hasSeller(sellerId))
-				.and(NoteSpecifications.priceBetween(minPrice, maxPrice))
-				.and(NoteSpecifications.matchesQuery(query))
-				.and(NoteSpecifications.hasTags(tags));
+		Specification<NoteEntity> spec = Specification.where(NoteSpecifications.hasStatus(NoteStatus.PUBLISHED));
+		spec = andIfPresent(spec, NoteSpecifications.hasNiche(nicheId));
+		spec = andIfPresent(spec, NoteSpecifications.hasSeller(sellerId));
+		spec = andIfPresent(spec, NoteSpecifications.priceBetween(minPrice, maxPrice));
+		spec = andIfPresent(spec, NoteSpecifications.matchesQuery(query));
+		spec = andIfPresent(spec, NoteSpecifications.hasTags(tags));
 		return noteRepository.findAll(spec, pageable);
 	}
 
 	public Page<CourseEntity> findCourses(UUID nicheId, UUID sellerId, BigDecimal minPrice, BigDecimal maxPrice,
 							   String query, Pageable pageable) {
-		Specification<CourseEntity> spec = Specification.where(CourseSpecifications.hasStatus(CourseStatus.PUBLISHED))
-				.and(CourseSpecifications.hasNiche(nicheId))
-				.and(CourseSpecifications.hasSeller(sellerId))
-				.and(CourseSpecifications.priceBetween(minPrice, maxPrice))
-				.and(CourseSpecifications.matchesQuery(query));
+		Specification<CourseEntity> spec = Specification.where(CourseSpecifications.hasStatus(CourseStatus.PUBLISHED));
+		spec = andIfPresent(spec, CourseSpecifications.hasNiche(nicheId));
+		spec = andIfPresent(spec, CourseSpecifications.hasSeller(sellerId));
+		spec = andIfPresent(spec, CourseSpecifications.priceBetween(minPrice, maxPrice));
+		spec = andIfPresent(spec, CourseSpecifications.matchesQuery(query));
 		return courseRepository.findAll(spec, pageable);
+	}
+
+	private static <T> Specification<T> andIfPresent(Specification<T> base, Specification<T> next) {
+		if (next == null) {
+			return base;
+		}
+		return base.and(next);
 	}
 }

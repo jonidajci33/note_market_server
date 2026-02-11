@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/v1/me")
-@PreAuthorize("hasRole('CLIENT')")
 public class LibraryController {
 	private final EntitlementService entitlementService;
 

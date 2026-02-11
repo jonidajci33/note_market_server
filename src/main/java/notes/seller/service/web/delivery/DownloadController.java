@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/v1/notes")
-@PreAuthorize("hasRole('CLIENT')")
 public class DownloadController {
 	private final DownloadService downloadService;
 
