@@ -1,0 +1,8 @@
+{
+  "properties": [
+    {
+      "name": "spring.flyway.default-schema",
+      "type": "java.lang.String",
+      "description": "Description for spring.flyway.default-schema."
+  }
+] }
