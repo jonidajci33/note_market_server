@@ -11,7 +11,8 @@ import notes.seller.service.web.catalog.dto.NoteResponse;
 import notes.seller.service.web.catalog.dto.NoteUpdateRequest;
 import notes.seller.service.web.catalog.dto.NoteUploadRequest;
 import notes.seller.service.web.catalog.dto.UploadUrlResponse;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/seller/notes")
 public class SellerNoteController {
+	private static final Logger log = LoggerFactory.getLogger(SellerNoteController.class);
 	private final NoteService noteService;
 
 	public SellerNoteController(NoteService noteService) {
@@ -52,8 +54,26 @@ public class SellerNoteController {
 							   @Valid @RequestBody NoteUploadRequest request,
 							   Authentication authentication) {
 		UUID sellerId = SecurityUtils.getUserId(authentication);
+		log.info("Upload session requested: kind=NOTE_FILE sellerId={} noteId={} contentType={} fileSize={}",
+				sellerId, id, request.contentType(), request.fileSize());
 		UploadSession session = noteService.requestUploadUrl(sellerId, id, request.contentType(),
 				request.fileSize(), request.checksumSha256());
+		log.info("Upload session generated: kind=NOTE_FILE sellerId={} noteId={} fileKey={} expiresAt={}",
+				sellerId, id, session.fileKey(), session.presignedUrl().expiresAt());
+		return new UploadUrlResponse(session.presignedUrl().url(), session.fileKey(), session.presignedUrl().expiresAt());
+	}
+
+	@PostMapping("/{id}/cover-upload-url")
+	public UploadUrlResponse coverUploadUrl(@PathVariable("id") UUID id,
+									@Valid @RequestBody NoteUploadRequest request,
+									Authentication authentication) {
+		UUID sellerId = SecurityUtils.getUserId(authentication);
+		log.info("Upload session requested: kind=COVER_IMAGE sellerId={} noteId={} contentType={} fileSize={}",
+				sellerId, id, request.contentType(), request.fileSize());
+		UploadSession session = noteService.requestCoverUploadUrl(sellerId, id, request.contentType(),
+				request.fileSize(), request.checksumSha256());
+		log.info("Upload session generated: kind=COVER_IMAGE sellerId={} noteId={} fileKey={} expiresAt={}",
+				sellerId, id, session.fileKey(), session.presignedUrl().expiresAt());
 		return new UploadUrlResponse(session.presignedUrl().url(), session.fileKey(), session.presignedUrl().expiresAt());
 	}
 
@@ -65,6 +85,7 @@ public class SellerNoteController {
 				note.getCourse() == null ? null : note.getCourse().getId(),
 				note.getTitle(),
 				note.getDescription(),
+				noteService.resolveCoverImageUrl(note),
 				note.getPrice(),
 				note.getStatus(),
 				note.getTags(),

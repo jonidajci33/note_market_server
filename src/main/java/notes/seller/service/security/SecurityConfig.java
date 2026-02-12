@@ -10,6 +10,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -26,6 +27,7 @@ import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @EnableMethodSecurity
+@EnableWebSecurity
 public class SecurityConfig {
 	private final JwtProperties properties;
 
@@ -82,6 +84,9 @@ public class SecurityConfig {
 						.requestMatchers(HttpMethod.GET, "/api/v1/niches/**").permitAll()
 						.requestMatchers(HttpMethod.GET, "/api/v1/notes/**").permitAll()
 						.requestMatchers(HttpMethod.GET, "/api/v1/courses/**").permitAll()
+						.requestMatchers(HttpMethod.GET, "/api/v1/system/connectivity").permitAll()
+						.requestMatchers(HttpMethod.PUT, "/api/v1/storage/local/upload/**").permitAll()
+						.requestMatchers(HttpMethod.GET, "/api/v1/storage/local/download/**").permitAll()
 						.requestMatchers(HttpMethod.GET, "/actuator/health/**").permitAll()
 						.anyRequest().authenticated()
 				)

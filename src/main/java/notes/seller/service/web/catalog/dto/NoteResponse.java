@@ -13,6 +13,7 @@ public record NoteResponse(
 		UUID courseId,
 		String title,
 		String description,
+		String coverImageUrl,
 		BigDecimal price,
 		NoteStatus status,
 		Set<String> tags,

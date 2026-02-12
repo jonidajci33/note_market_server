@@ -59,6 +59,12 @@ public class NoteEntity extends BaseEntity {
 	@Column(name = "content_type", length = 120)
 	private String contentType;
 
+	@Column(name = "cover_file_key", length = 512)
+	private String coverFileKey;
+
+	@Column(name = "cover_content_type", length = 120)
+	private String coverContentType;
+
 	@Column(name = "file_size")
 	private Long fileSize;
 

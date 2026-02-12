@@ -1,6 +1,8 @@
 package notes.seller.service.config;
 
 import java.net.URI;
+import notes.seller.service.integration.storage.LocalFileStorageService;
+import notes.seller.service.integration.storage.LocalStorageProperties;
 import notes.seller.service.integration.storage.NoopStorageService;
 import notes.seller.service.integration.storage.S3Properties;
 import notes.seller.service.integration.storage.S3StorageService;
@@ -14,10 +16,12 @@ import org.springframework.context.annotation.Configuration;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 
 @Configuration
-@EnableConfigurationProperties(S3Properties.class)
+@EnableConfigurationProperties({S3Properties.class, LocalStorageProperties.class})
 public class StorageConfig {
 
 	@Bean
@@ -34,7 +38,28 @@ public class StorageConfig {
 	}
 
 	@Bean
+	@ConditionalOnProperty(prefix = "app.storage.s3", name = "enabled", havingValue = "true")
+	public S3Client s3Client(S3Properties properties) {
+		var builder = S3Client.builder()
+				.region(Region.of(properties.region()))
+				.credentialsProvider(StaticCredentialsProvider.create(
+						AwsBasicCredentials.create(properties.accessKey(), properties.secretKey())))
+				.serviceConfiguration(S3Configuration.builder().pathStyleAccessEnabled(true).build());
+		if (properties.endpoint() != null && !properties.endpoint().isBlank()) {
+			builder.endpointOverride(URI.create(properties.endpoint()));
+		}
+		return builder.build();
+	}
+
+	@Bean
+	@ConditionalOnProperty(prefix = "app.storage.local", name = "enabled", havingValue = "true")
+	public LocalFileStorageService localFileStorageService(LocalStorageProperties properties) {
+		return new LocalFileStorageService(properties);
+	}
+
+	@Bean
 	@ConditionalOnBean(S3Presigner.class)
+	@ConditionalOnMissingBean(StorageService.class)
 	public StorageService s3StorageService(S3Presigner presigner, S3Properties properties) {
 		return new S3StorageService(presigner, properties);
 	}

@@ -44,6 +44,6 @@ class DownloadControllerWebMvcTest {
 		mockMvc.perform(post("/api/v1/notes/{id}/download", noteId)
 						.with(jwtWithRole(clientId, "CLIENT")))
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.url").value("https://example.test/download"));
+				.andExpect(jsonPath("$.downloadUrl").value("https://example.test/download"));
 	}
 }

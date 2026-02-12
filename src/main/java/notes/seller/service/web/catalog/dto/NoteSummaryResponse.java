@@ -12,6 +12,7 @@ public record NoteSummaryResponse(
 		UUID nicheId,
 		UUID courseId,
 		String title,
+		String coverImageUrl,
 		BigDecimal price,
 		NoteStatus status,
 		Set<String> tags,

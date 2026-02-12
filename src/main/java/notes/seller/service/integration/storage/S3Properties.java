@@ -7,6 +7,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public record S3Properties(
 		boolean enabled,
 		String endpoint,
+		String publicEndpoint,
 		String region,
 		String bucket,
 		String accessKey,

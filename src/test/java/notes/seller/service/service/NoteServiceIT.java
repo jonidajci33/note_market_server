@@ -1,7 +1,6 @@
 package notes.seller.service.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -28,9 +27,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.http.HttpStatus;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 @SpringBootTest
 @Transactional
@@ -70,16 +67,16 @@ class NoteServiceIT extends AbstractPostgresIT {
 	}
 
 	@Test
-	void create_shouldRejectCourseOwnedByAnotherSeller() {
+	void create_shouldIgnoreCourseIdWhenCourseFlowRemoved() {
 		UserEntity seller = userRepository.save(dataFactory.aSellerUser());
-		UserEntity otherSeller = userRepository.save(dataFactory.aSellerUser());
 		NicheEntity niche = nicheRepository.save(dataFactory.aNiche());
-		CourseEntity course = courseRepository.save(dataFactory.aCourse(otherSeller, niche));
+		CourseEntity course = courseRepository.save(dataFactory.aCourse(seller, niche));
 
-		assertThatThrownBy(() -> noteService.create(seller.getId(), niche.getId(), course.getId(), "Title", null,
-				new BigDecimal("10.00"), null))
-				.isInstanceOf(ResponseStatusException.class)
-				.satisfies(ex -> assertThat(((ResponseStatusException) ex).getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN));
+		NoteEntity created = noteService.create(seller.getId(), niche.getId(), course.getId(), "Title", null,
+				new BigDecimal("10.00"), null);
+
+		assertThat(created.getId()).isNotNull();
+		assertThat(created.getCourse()).isNull();
 	}
 
 	@Test
@@ -109,5 +106,19 @@ class NoteServiceIT extends AbstractPostgresIT {
 		assertThat(refreshed.getContentType()).isEqualTo("application/pdf");
 		assertThat(refreshed.getFileSize()).isEqualTo(1024L);
 		assertThat(refreshed.getChecksumSha256()).isEqualTo("sha256");
+	}
+
+	@Test
+	void requestCoverUploadUrl_shouldStoreCoverMetadata() {
+		UserEntity seller = userRepository.save(dataFactory.aSellerUser());
+		NicheEntity niche = nicheRepository.save(dataFactory.aNiche());
+		NoteEntity note = noteRepository.save(dataFactory.aNote(seller, niche));
+
+		UploadSession session = noteService.requestCoverUploadUrl(seller.getId(), note.getId(), "image/png", 2048L, "sha256");
+
+		assertThat(session.fileKey()).contains("/cover-");
+		NoteEntity refreshed = noteRepository.findById(note.getId()).orElseThrow();
+		assertThat(refreshed.getCoverFileKey()).isEqualTo(session.fileKey());
+		assertThat(refreshed.getCoverContentType()).isEqualTo("image/png");
 	}
 }

@@ -62,9 +62,25 @@ class SellerCourseControllerWebMvcTest {
 	}
 
 	@Test
-	void publish_shouldRejectWrongRole() throws Exception {
-		mockMvc.perform(post("/api/v1/seller/courses/{id}/publish", UUID.randomUUID())
-						.with(jwtWithRole(UUID.randomUUID(), "CLIENT")))
-				.andExpect(status().isForbidden());
+	void publish_shouldAllowAuthenticatedClientRole() throws Exception {
+		UUID sellerId = UUID.randomUUID();
+		UUID courseId = UUID.randomUUID();
+		CourseEntity course = new CourseEntity();
+		course.setId(courseId);
+		course.setTitle("Course");
+		course.setStatus(CourseStatus.PUBLISHED);
+		course.setPrice(new BigDecimal("20.00"));
+		UserEntity seller = new UserEntity();
+		seller.setId(sellerId);
+		course.setSeller(seller);
+		NicheEntity niche = new NicheEntity();
+		niche.setId(UUID.randomUUID());
+		course.setNiche(niche);
+		when(courseService.publish(eq(sellerId), eq(courseId))).thenReturn(course);
+
+		mockMvc.perform(post("/api/v1/seller/courses/{id}/publish", courseId)
+						.with(jwtWithRole(sellerId, "CLIENT")))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.status").value("PUBLISHED"));
 	}
 }
