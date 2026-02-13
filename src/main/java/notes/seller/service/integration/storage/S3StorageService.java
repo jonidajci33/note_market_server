@@ -7,6 +7,7 @@ import java.time.Instant;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
@@ -81,6 +82,7 @@ public class S3StorageService implements StorageService {
 				.region(Region.of(properties.region()))
 				.credentialsProvider(StaticCredentialsProvider.create(
 						AwsBasicCredentials.create(properties.accessKey(), properties.secretKey())))
+				.serviceConfiguration(S3Configuration.builder().pathStyleAccessEnabled(true).build())
 				.endpointOverride(URI.create(endpoint))
 				.build();
 	}

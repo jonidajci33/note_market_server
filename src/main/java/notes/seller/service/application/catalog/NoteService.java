@@ -46,6 +46,11 @@ public class NoteService {
 		this.storageService = storageService;
 	}
 
+	@Transactional(readOnly = true)
+	public java.util.List<NoteEntity> listBySeller(UUID sellerId) {
+		return noteRepository.findBySellerIdOrderByCreatedAtDesc(sellerId);
+	}
+
 	public NoteEntity create(UUID sellerId, UUID nicheId, UUID courseId, String title, String description,
 						 BigDecimal price, Set<String> tags) {
 		UserEntity seller = userRepository.findById(sellerId)
@@ -60,7 +65,7 @@ public class NoteService {
 		note.setTitle(title);
 		note.setDescription(description);
 		note.setPrice(price);
-		note.setStatus(NoteStatus.PUBLISHED);
+		note.setStatus(NoteStatus.DRAFT);
 		if (tags != null && !tags.isEmpty()) {
 			note.setTags(new HashSet<>(tags));
 		}

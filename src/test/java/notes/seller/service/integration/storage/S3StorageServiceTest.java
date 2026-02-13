@@ -12,6 +12,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 
 class S3StorageServiceTest {
@@ -133,11 +134,40 @@ class S3StorageServiceTest {
 		}
 	}
 
+	@Test
+	void createUploadUrl_usesPathStyleBucketAddressing() {
+		S3Properties properties = new S3Properties(
+				true,
+				"http://minio:9000",
+				null,
+				"us-east-1",
+				"notes",
+				"minioadmin",
+				"minioadmin",
+				Duration.ofMinutes(15)
+		);
+		S3Presigner defaultPresigner = presignerFor("http://minio:9000", properties);
+		try {
+			S3StorageService service = new S3StorageService(defaultPresigner, properties);
+
+			PresignedUrl uploadUrl = service.createUploadUrl(new StorageUploadRequest("test/key.pdf", "application/pdf"));
+
+			URI uri = URI.create(uploadUrl.url());
+			// Path-style: host should be plain "minio", NOT "notes.minio"
+			assertThat(uri.getHost()).isEqualTo("minio");
+			// Bucket name should be in the path
+			assertThat(uri.getPath()).startsWith("/notes/");
+		} finally {
+			defaultPresigner.close();
+		}
+	}
+
 	private S3Presigner presignerFor(String endpoint, S3Properties properties) {
 		return S3Presigner.builder()
 				.region(Region.of(properties.region()))
 				.credentialsProvider(StaticCredentialsProvider.create(
 						AwsBasicCredentials.create(properties.accessKey(), properties.secretKey())))
+				.serviceConfiguration(S3Configuration.builder().pathStyleAccessEnabled(true).build())
 				.endpointOverride(URI.create(endpoint))
 				.build();
 	}

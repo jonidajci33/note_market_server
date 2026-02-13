@@ -10,4 +10,6 @@ public interface NoteRepository extends JpaRepository<NoteEntity, UUID>, JpaSpec
 	Optional<NoteEntity> findByIdAndSellerId(UUID id, UUID sellerId);
 
 	List<NoteEntity> findByCourseId(UUID courseId);
+
+	List<NoteEntity> findBySellerIdOrderByCreatedAtDesc(UUID sellerId);
 }

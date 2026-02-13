@@ -5,12 +5,14 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import tools.jackson.databind.ObjectMapper;
 import java.time.Instant;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import notes.seller.service.application.catalog.NoteService;
@@ -47,6 +49,60 @@ class SellerNoteControllerWebMvcTest {
 	private NoteService noteService;
 	@MockitoBean
 	private UserDetailsServiceImpl userDetailsService;
+
+	@Test
+	void listMyNotes_shouldReturnSellerNotes() throws Exception {
+		UUID sellerId = UUID.randomUUID();
+		NoteEntity note = new NoteEntity();
+		note.setId(UUID.randomUUID());
+		note.setTitle("Draft Note");
+		note.setStatus(NoteStatus.DRAFT);
+		UserEntity seller = new UserEntity();
+		seller.setId(sellerId);
+		note.setSeller(seller);
+		NicheEntity niche = new NicheEntity();
+		niche.setId(UUID.randomUUID());
+		note.setNiche(niche);
+		when(noteService.listBySeller(eq(sellerId))).thenReturn(List.of(note));
+
+		mockMvc.perform(get("/api/v1/seller/notes")
+						.with(jwtWithRole(sellerId, "CLIENT")))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$[0].title").value("Draft Note"))
+				.andExpect(jsonPath("$[0].status").value("DRAFT"));
+	}
+
+	@Test
+	void listMyNotes_shouldRejectUnauthorized() throws Exception {
+		mockMvc.perform(get("/api/v1/seller/notes"))
+				.andExpect(status().isUnauthorized());
+	}
+
+	@Test
+	void create_shouldReturnDraftStatus() throws Exception {
+		UUID sellerId = UUID.randomUUID();
+		UUID nicheId = UUID.randomUUID();
+		NoteCreateRequest request = new NoteCreateRequest(nicheId, null, "Title", "Desc", null, Set.of("tag"));
+		NoteEntity note = new NoteEntity();
+		note.setId(UUID.randomUUID());
+		note.setTitle("Title");
+		note.setStatus(NoteStatus.DRAFT);
+		UserEntity seller = new UserEntity();
+		seller.setId(sellerId);
+		note.setSeller(seller);
+		NicheEntity niche = new NicheEntity();
+		niche.setId(nicheId);
+		note.setNiche(niche);
+		when(noteService.create(eq(sellerId), eq(nicheId), any(), eq("Title"), eq("Desc"), any(), any()))
+				.thenReturn(note);
+
+		mockMvc.perform(post("/api/v1/seller/notes")
+						.with(jwtWithRole(sellerId, "SELLER"))
+						.contentType(APPLICATION_JSON)
+						.content(objectMapper.writeValueAsString(request)))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.status").value("DRAFT"));
+	}
 
 	@Test
 	void create_shouldAllowSeller() throws Exception {

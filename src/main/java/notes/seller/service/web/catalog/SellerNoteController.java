@@ -1,6 +1,7 @@
 package notes.seller.service.web.catalog;
 
 import jakarta.validation.Valid;
+import java.util.List;
 import java.util.UUID;
 import notes.seller.service.application.catalog.NoteService;
 import notes.seller.service.application.catalog.UploadSession;
@@ -14,6 +15,7 @@ import notes.seller.service.web.catalog.dto.UploadUrlResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -31,9 +33,17 @@ public class SellerNoteController {
 		this.noteService = noteService;
 	}
 
+	@GetMapping
+	public List<NoteResponse> listMyNotes(Authentication authentication) {
+		UUID sellerId = SecurityUtils.getUserId(authentication);
+		return noteService.listBySeller(sellerId).stream().map(this::toResponse).toList();
+	}
+
 	@PostMapping
 	public NoteResponse create(@Valid @RequestBody NoteCreateRequest request, Authentication authentication) {
 		UUID sellerId = SecurityUtils.getUserId(authentication);
+		log.info("Created Note: kind=NOTE sellerId={} ",
+				sellerId);
 		NoteEntity note = noteService.create(sellerId, request.nicheId(), request.courseId(), request.title(), request.description(),
 				request.price(), request.tags());
 		return toResponse(note);

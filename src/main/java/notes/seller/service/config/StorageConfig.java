@@ -30,7 +30,8 @@ public class StorageConfig {
 		S3Presigner.Builder builder = S3Presigner.builder()
 				.region(Region.of(properties.region()))
 				.credentialsProvider(StaticCredentialsProvider.create(
-						AwsBasicCredentials.create(properties.accessKey(), properties.secretKey())));
+						AwsBasicCredentials.create(properties.accessKey(), properties.secretKey())))
+				.serviceConfiguration(S3Configuration.builder().pathStyleAccessEnabled(true).build());
 		if (properties.endpoint() != null && !properties.endpoint().isBlank()) {
 			builder.endpointOverride(URI.create(properties.endpoint()));
 		}
