@@ -16,6 +16,7 @@ import notes.seller.service.application.catalog.NoteService;
 import notes.seller.service.domain.catalog.CourseStatus;
 import notes.seller.service.domain.catalog.NoteStatus;
 import notes.seller.service.persistence.catalog.CourseEntity;
+import notes.seller.service.persistence.catalog.CategoryEntity;
 import notes.seller.service.persistence.catalog.NicheEntity;
 import notes.seller.service.persistence.catalog.NoteEntity;
 import notes.seller.service.persistence.identity.UserEntity;
@@ -49,6 +50,17 @@ class CatalogControllerWebMvcTest {
 	@MockitoBean
 	private UserDetailsServiceImpl userDetailsService;
 
+	private static NicheEntity nicheWithCategory() {
+		CategoryEntity category = new CategoryEntity();
+		category.setId(UUID.fromString("00000000-0000-0000-0000-00000000bb01"));
+		category.setSlug("technology");
+		category.setName("Technology");
+		NicheEntity niche = new NicheEntity();
+		niche.setId(UUID.randomUUID());
+		niche.setCategory(category);
+		return niche;
+	}
+
 	@Test
 	void listNotes_shouldReturnPage() throws Exception {
 		NoteEntity note = new NoteEntity();
@@ -60,9 +72,7 @@ class CatalogControllerWebMvcTest {
 		UserEntity seller = new UserEntity();
 		seller.setId(UUID.randomUUID());
 		note.setSeller(seller);
-		NicheEntity niche = new NicheEntity();
-		niche.setId(UUID.randomUUID());
-		note.setNiche(niche);
+		note.setNiche(nicheWithCategory());
 		when(catalogQueryService.findNotes(any(), any(), any(), any(), any(), any(), any()))
 				.thenReturn(new PageImpl<>(List.of(note), PageRequest.of(0, 20), 1));
 

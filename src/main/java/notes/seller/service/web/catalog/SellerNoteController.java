@@ -92,6 +92,7 @@ public class SellerNoteController {
 				note.getId(),
 				note.getSeller().getId(),
 				note.getNiche().getId(),
+				note.getNiche().getCategory().getId(),
 				note.getCourse() == null ? null : note.getCourse().getId(),
 				note.getTitle(),
 				note.getDescription(),

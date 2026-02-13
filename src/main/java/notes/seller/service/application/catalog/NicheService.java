@@ -14,13 +14,19 @@ import org.springframework.web.server.ResponseStatusException;
 @Transactional
 public class NicheService {
 	private final NicheRepository nicheRepository;
+	private final CategoryService categoryService;
 
-	public NicheService(NicheRepository nicheRepository) {
+	public NicheService(NicheRepository nicheRepository, CategoryService categoryService) {
 		this.nicheRepository = nicheRepository;
+		this.categoryService = categoryService;
 	}
 
 	public List<NicheEntity> listAll() {
 		return nicheRepository.findAll(Sort.by(Sort.Direction.ASC, "name"));
+	}
+
+	public List<NicheEntity> listByCategory(UUID categoryId) {
+		return nicheRepository.findByCategoryId(categoryId);
 	}
 
 	public NicheEntity getById(UUID id) {
@@ -28,20 +34,18 @@ public class NicheService {
 				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Niche not found"));
 	}
 
-	public NicheEntity create(String slug, String name, UUID parentId) {
+	public NicheEntity create(String slug, String name, UUID categoryId) {
 		if (nicheRepository.findBySlug(slug).isPresent()) {
 			throw new ResponseStatusException(HttpStatus.CONFLICT, "Niche slug already exists");
 		}
 		NicheEntity niche = new NicheEntity();
 		niche.setSlug(slug);
 		niche.setName(name);
-		if (parentId != null) {
-			niche.setParent(getById(parentId));
-		}
+		niche.setCategory(categoryService.getById(categoryId));
 		return nicheRepository.save(niche);
 	}
 
-	public NicheEntity update(UUID id, String slug, String name, UUID parentId) {
+	public NicheEntity update(UUID id, String slug, String name, UUID categoryId) {
 		NicheEntity niche = getById(id);
 		if (slug != null && !slug.isBlank() && !slug.equals(niche.getSlug())) {
 			if (nicheRepository.findBySlug(slug).isPresent()) {
@@ -52,8 +56,8 @@ public class NicheService {
 		if (name != null && !name.isBlank()) {
 			niche.setName(name);
 		}
-		if (parentId != null) {
-			niche.setParent(getById(parentId));
+		if (categoryId != null) {
+			niche.setCategory(categoryService.getById(categoryId));
 		}
 		return nicheRepository.save(niche);
 	}

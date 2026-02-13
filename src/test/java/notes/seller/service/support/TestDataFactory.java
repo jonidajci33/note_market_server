@@ -163,7 +163,7 @@ public final class TestDataFactory {
 
 	public NicheRequest aNicheRequest() {
 		int seed = next();
-		return new NicheRequest("niche-" + seed, "Niche " + seed, null);
+		return new NicheRequest("niche-" + seed, "Niche " + seed, UUID.fromString("00000000-0000-0000-0000-00000000bb01"));
 	}
 
 	public CourseCreateRequest aCourseCreateRequest(UUID nicheId) {

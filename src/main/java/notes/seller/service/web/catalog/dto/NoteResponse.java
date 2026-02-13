@@ -10,6 +10,7 @@ public record NoteResponse(
 		UUID id,
 		UUID sellerId,
 		UUID nicheId,
+		UUID categoryId,
 		UUID courseId,
 		String title,
 		String description,

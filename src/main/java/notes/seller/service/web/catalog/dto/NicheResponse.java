@@ -6,6 +6,6 @@ public record NicheResponse(
 		UUID id,
 		String slug,
 		String name,
-		UUID parentId
+		UUID categoryId
 ) {
 }

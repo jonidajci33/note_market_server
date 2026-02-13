@@ -32,7 +32,7 @@ class NicheServiceIT extends AbstractPostgresIT {
 	void create_shouldPersistNiche() {
 		var request = dataFactory.aNicheRequest();
 
-		NicheEntity niche = nicheService.create(request.slug(), request.name(), request.parentId());
+		NicheEntity niche = nicheService.create(request.slug(), request.name(), request.categoryId());
 
 		assertThat(niche.getId()).isNotNull();
 		assertThat(niche.getSlug()).isEqualTo(request.slug());
@@ -42,7 +42,7 @@ class NicheServiceIT extends AbstractPostgresIT {
 	@Test
 	void create_shouldRejectDuplicateSlug() {
 		var request = dataFactory.aNicheRequest();
-		nicheService.create(request.slug(), request.name(), request.parentId());
+		nicheService.create(request.slug(), request.name(), request.categoryId());
 
 		assertThatThrownBy(() -> nicheService.create(request.slug(), "Other", null))
 				.isInstanceOf(ResponseStatusException.class)

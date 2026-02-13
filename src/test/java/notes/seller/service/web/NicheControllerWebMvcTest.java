@@ -13,6 +13,7 @@ import tools.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.UUID;
 import notes.seller.service.application.catalog.NicheService;
+import notes.seller.service.persistence.catalog.CategoryEntity;
 import notes.seller.service.persistence.catalog.NicheEntity;
 import notes.seller.service.security.JwtProperties;
 import notes.seller.service.security.SecurityConfig;
@@ -41,12 +42,24 @@ class NicheControllerWebMvcTest {
 	@MockitoBean
 	private UserDetailsServiceImpl userDetailsService;
 
-	@Test
-	void list_shouldReturnNiches() throws Exception {
+	private static final UUID CATEGORY_ID = UUID.fromString("00000000-0000-0000-0000-00000000bb01");
+
+	private NicheEntity nicheWithCategory(String slug, String name) {
+		CategoryEntity category = new CategoryEntity();
+		category.setId(CATEGORY_ID);
+		category.setSlug("technology");
+		category.setName("Technology");
 		NicheEntity niche = new NicheEntity();
 		niche.setId(UUID.randomUUID());
-		niche.setSlug("ai");
-		niche.setName("AI");
+		niche.setSlug(slug);
+		niche.setName(name);
+		niche.setCategory(category);
+		return niche;
+	}
+
+	@Test
+	void list_shouldReturnNiches() throws Exception {
+		NicheEntity niche = nicheWithCategory("ai", "AI");
 		when(nicheService.listAll()).thenReturn(List.of(niche));
 
 		mockMvc.perform(get("/api/v1/niches"))
@@ -57,12 +70,9 @@ class NicheControllerWebMvcTest {
 
 	@Test
 	void create_shouldAllowSysadmin() throws Exception {
-		NicheRequest request = new NicheRequest("java", "Java", null);
-		NicheEntity niche = new NicheEntity();
-		niche.setId(UUID.randomUUID());
-		niche.setSlug("java");
-		niche.setName("Java");
-		when(nicheService.create(request.slug(), request.name(), request.parentId())).thenReturn(niche);
+		NicheRequest request = new NicheRequest("java", "Java", CATEGORY_ID);
+		NicheEntity niche = nicheWithCategory("java", "Java");
+		when(nicheService.create(request.slug(), request.name(), request.categoryId())).thenReturn(niche);
 
 		mockMvc.perform(post("/api/v1/niches")
 						.with(jwtWithRole(UUID.randomUUID(), "SYSADMIN"))
@@ -84,7 +94,7 @@ class NicheControllerWebMvcTest {
 
 	@Test
 	void create_shouldRejectWrongRole() throws Exception {
-		NicheRequest request = new NicheRequest("java", "Java", null);
+		NicheRequest request = new NicheRequest("java", "Java", CATEGORY_ID);
 
 		mockMvc.perform(post("/api/v1/niches")
 						.with(jwtWithRole(UUID.randomUUID(), "CLIENT"))

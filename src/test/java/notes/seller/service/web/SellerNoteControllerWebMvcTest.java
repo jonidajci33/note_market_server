@@ -19,6 +19,7 @@ import notes.seller.service.application.catalog.NoteService;
 import notes.seller.service.application.catalog.UploadSession;
 import notes.seller.service.domain.catalog.NoteStatus;
 import notes.seller.service.integration.storage.PresignedUrl;
+import notes.seller.service.persistence.catalog.CategoryEntity;
 import notes.seller.service.persistence.catalog.NicheEntity;
 import notes.seller.service.persistence.catalog.NoteEntity;
 import notes.seller.service.persistence.identity.UserEntity;
@@ -50,6 +51,17 @@ class SellerNoteControllerWebMvcTest {
 	@MockitoBean
 	private UserDetailsServiceImpl userDetailsService;
 
+	private static NicheEntity nicheWithCategory(UUID nicheId) {
+		CategoryEntity category = new CategoryEntity();
+		category.setId(UUID.fromString("00000000-0000-0000-0000-00000000bb01"));
+		category.setSlug("technology");
+		category.setName("Technology");
+		NicheEntity niche = new NicheEntity();
+		niche.setId(nicheId);
+		niche.setCategory(category);
+		return niche;
+	}
+
 	@Test
 	void listMyNotes_shouldReturnSellerNotes() throws Exception {
 		UUID sellerId = UUID.randomUUID();
@@ -60,9 +72,7 @@ class SellerNoteControllerWebMvcTest {
 		UserEntity seller = new UserEntity();
 		seller.setId(sellerId);
 		note.setSeller(seller);
-		NicheEntity niche = new NicheEntity();
-		niche.setId(UUID.randomUUID());
-		note.setNiche(niche);
+		note.setNiche(nicheWithCategory(UUID.randomUUID()));
 		when(noteService.listBySeller(eq(sellerId))).thenReturn(List.of(note));
 
 		mockMvc.perform(get("/api/v1/seller/notes")
@@ -90,9 +100,7 @@ class SellerNoteControllerWebMvcTest {
 		UserEntity seller = new UserEntity();
 		seller.setId(sellerId);
 		note.setSeller(seller);
-		NicheEntity niche = new NicheEntity();
-		niche.setId(nicheId);
-		note.setNiche(niche);
+		note.setNiche(nicheWithCategory(nicheId));
 		when(noteService.create(eq(sellerId), eq(nicheId), any(), eq("Title"), eq("Desc"), any(), any()))
 				.thenReturn(note);
 
@@ -116,9 +124,7 @@ class SellerNoteControllerWebMvcTest {
 		UserEntity seller = new UserEntity();
 		seller.setId(sellerId);
 		note.setSeller(seller);
-		NicheEntity niche = new NicheEntity();
-		niche.setId(nicheId);
-		note.setNiche(niche);
+		note.setNiche(nicheWithCategory(nicheId));
 		when(noteService.create(eq(sellerId), eq(nicheId), any(), eq("Title"), eq("Desc"), any(), any()))
 				.thenReturn(note);
 
@@ -152,9 +158,7 @@ class SellerNoteControllerWebMvcTest {
 		UserEntity seller = new UserEntity();
 		seller.setId(sellerId);
 		note.setSeller(seller);
-		NicheEntity niche = new NicheEntity();
-		niche.setId(nicheId);
-		note.setNiche(niche);
+		note.setNiche(nicheWithCategory(nicheId));
 		when(noteService.create(eq(sellerId), eq(nicheId), any(), eq("Title"), eq("Desc"), any(), any()))
 				.thenReturn(note);
 
