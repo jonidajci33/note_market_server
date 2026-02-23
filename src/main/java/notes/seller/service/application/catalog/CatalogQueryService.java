@@ -47,6 +47,10 @@ public class CatalogQueryService {
 		return courseRepository.findAll(spec, pageable);
 	}
 
+	public long countPublishedNotesBySeller(UUID sellerId) {
+		return noteRepository.countBySellerIdAndStatus(sellerId, NoteStatus.PUBLISHED);
+	}
+
 	private static <T> Specification<T> andIfPresent(Specification<T> base, Specification<T> next) {
 		if (next == null) {
 			return base;

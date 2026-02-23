@@ -2,16 +2,21 @@ package notes.seller.service.web.catalog;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import notes.seller.service.application.catalog.CatalogQueryService;
 import notes.seller.service.application.catalog.CourseService;
 import notes.seller.service.application.catalog.NoteService;
+import notes.seller.service.application.rating.RatingService;
 import notes.seller.service.common.PageResponse;
 import notes.seller.service.common.SortOption;
 import notes.seller.service.persistence.catalog.CourseEntity;
 import notes.seller.service.persistence.catalog.NoteEntity;
 import notes.seller.service.web.catalog.dto.CourseResponse;
 import notes.seller.service.web.catalog.dto.CourseSummaryResponse;
+import notes.seller.service.persistence.identity.SellerProfileEntity;
+import notes.seller.service.web.catalog.dto.NoteDetailResponse;
 import notes.seller.service.web.catalog.dto.NoteResponse;
 import notes.seller.service.web.catalog.dto.NoteSummaryResponse;
 import org.springframework.data.domain.Page;
@@ -29,11 +34,14 @@ public class CatalogController {
 	private final CatalogQueryService catalogQueryService;
 	private final NoteService noteService;
 	private final CourseService courseService;
+	private final RatingService ratingService;
 
-	public CatalogController(CatalogQueryService catalogQueryService, NoteService noteService, CourseService courseService) {
+	public CatalogController(CatalogQueryService catalogQueryService, NoteService noteService,
+							 CourseService courseService, RatingService ratingService) {
 		this.catalogQueryService = catalogQueryService;
 		this.noteService = noteService;
 		this.courseService = courseService;
+		this.ratingService = ratingService;
 	}
 
 	@GetMapping("/notes")
@@ -52,13 +60,16 @@ public class CatalogController {
 		SortOption sortOption = SortOption.from(sort);
 		Pageable pageable = PageRequest.of(Math.max(page, 0), pageSize, sortOption.toSort());
 		Page<NoteEntity> result = catalogQueryService.findNotes(nicheId, sellerId, minPrice, maxPrice, q, tags, pageable);
-		return PageResponse.from(result.map(this::toNoteSummary));
+		List<UUID> noteIds = result.getContent().stream().map(NoteEntity::getId).collect(Collectors.toList());
+		Map<UUID, RatingService.RatingSummary> ratingSummaries = ratingService.getSummaries(noteIds);
+		return PageResponse.from(result.map(note -> toNoteSummary(note, ratingSummaries.get(note.getId()))));
 	}
 
 	@GetMapping("/notes/{id}")
-	public NoteResponse getNote(@PathVariable("id") UUID id) {
+	public NoteDetailResponse getNote(@PathVariable("id") UUID id) {
 		NoteEntity note = noteService.getPublished(id);
-		return toNoteResponse(note);
+		RatingService.RatingSummary ratingSummary = ratingService.getSummary(id);
+		return toNoteDetailResponse(note, ratingSummary);
 	}
 
 	@GetMapping("/courses")
@@ -85,7 +96,7 @@ public class CatalogController {
 		return toCourseResponse(course);
 	}
 
-	private NoteSummaryResponse toNoteSummary(NoteEntity note) {
+	private NoteSummaryResponse toNoteSummary(NoteEntity note, RatingService.RatingSummary ratingSummary) {
 		return new NoteSummaryResponse(
 				note.getId(),
 				note.getSeller().getId(),
@@ -97,7 +108,9 @@ public class CatalogController {
 				note.getPrice(),
 				note.getStatus(),
 				note.getTags(),
-				note.getCreatedAt()
+				note.getCreatedAt(),
+				ratingSummary != null ? ratingSummary.averageRating() : null,
+				ratingSummary != null ? (int) ratingSummary.ratingCount() : 0
 		);
 	}
 
@@ -115,6 +128,52 @@ public class CatalogController {
 				note.getStatus(),
 				note.getTags(),
 				note.getCreatedAt()
+		);
+	}
+
+	private NoteDetailResponse toNoteDetailResponse(NoteEntity note, RatingService.RatingSummary ratingSummary) {
+		SellerProfileEntity profile = note.getSeller().getSellerProfile();
+		String displayName;
+		if (profile != null && profile.getDisplayName() != null) {
+			displayName = profile.getDisplayName();
+		} else {
+			String email = note.getSeller().getEmail();
+			displayName = email != null && email.contains("@") ? email.substring(0, email.indexOf('@')) : "Unknown";
+		}
+
+		long sellerNoteCount = catalogQueryService.countPublishedNotesBySeller(note.getSeller().getId());
+
+		NoteDetailResponse.SellerInfo sellerInfo = new NoteDetailResponse.SellerInfo(
+				note.getSeller().getId(),
+				displayName,
+				sellerNoteCount
+		);
+
+		NoteDetailResponse.NicheInfo nicheInfo = new NoteDetailResponse.NicheInfo(
+				note.getNiche().getId(),
+				note.getNiche().getName(),
+				note.getNiche().getSlug()
+		);
+
+		return new NoteDetailResponse(
+				note.getId(),
+				note.getSeller().getId(),
+				note.getNiche().getId(),
+				note.getNiche().getCategory().getId(),
+				note.getCourse() == null ? null : note.getCourse().getId(),
+				note.getTitle(),
+				note.getDescription(),
+				noteService.resolveCoverImageUrl(note),
+				note.getPrice(),
+				note.getStatus(),
+				note.getTags(),
+				note.getCreatedAt(),
+				note.getPages(),
+				note.getContentType(),
+				sellerInfo,
+				nicheInfo,
+				ratingSummary != null ? ratingSummary.averageRating() : null,
+				ratingSummary != null ? (int) ratingSummary.ratingCount() : 0
 		);
 	}
 
