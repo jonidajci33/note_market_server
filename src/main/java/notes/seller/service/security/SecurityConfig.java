@@ -90,6 +90,7 @@ public class SecurityConfig {
 						.requestMatchers(HttpMethod.PUT, "/api/v1/storage/local/upload/**").permitAll()
 						.requestMatchers(HttpMethod.GET, "/api/v1/storage/local/download/**").permitAll()
 						.requestMatchers(HttpMethod.GET, "/actuator/health/**").permitAll()
+						.requestMatchers("/api/v1/admin/**").hasRole("SYSADMIN")
 						.anyRequest().authenticated()
 				)
 				.oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(converter)));

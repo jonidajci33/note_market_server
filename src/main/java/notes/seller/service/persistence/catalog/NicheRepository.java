@@ -8,4 +8,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface NicheRepository extends JpaRepository<NicheEntity, UUID> {
 	Optional<NicheEntity> findBySlug(String slug);
 	List<NicheEntity> findByCategoryId(UUID categoryId);
+	boolean existsByCategoryId(UUID categoryId);
 }

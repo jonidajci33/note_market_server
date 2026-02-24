@@ -2,13 +2,10 @@ package notes.seller.service.web.catalog;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import notes.seller.service.application.catalog.CatalogQueryService;
 import notes.seller.service.application.catalog.CourseService;
 import notes.seller.service.application.catalog.NoteService;
-import notes.seller.service.application.rating.RatingService;
 import notes.seller.service.common.PageResponse;
 import notes.seller.service.common.SortOption;
 import notes.seller.service.persistence.catalog.CourseEntity;
@@ -34,14 +31,12 @@ public class CatalogController {
 	private final CatalogQueryService catalogQueryService;
 	private final NoteService noteService;
 	private final CourseService courseService;
-	private final RatingService ratingService;
 
 	public CatalogController(CatalogQueryService catalogQueryService, NoteService noteService,
-							 CourseService courseService, RatingService ratingService) {
+							 CourseService courseService) {
 		this.catalogQueryService = catalogQueryService;
 		this.noteService = noteService;
 		this.courseService = courseService;
-		this.ratingService = ratingService;
 	}
 
 	@GetMapping("/notes")
@@ -60,16 +55,13 @@ public class CatalogController {
 		SortOption sortOption = SortOption.from(sort);
 		Pageable pageable = PageRequest.of(Math.max(page, 0), pageSize, sortOption.toSort());
 		Page<NoteEntity> result = catalogQueryService.findNotes(nicheId, sellerId, minPrice, maxPrice, q, tags, pageable);
-		List<UUID> noteIds = result.getContent().stream().map(NoteEntity::getId).collect(Collectors.toList());
-		Map<UUID, RatingService.RatingSummary> ratingSummaries = ratingService.getSummaries(noteIds);
-		return PageResponse.from(result.map(note -> toNoteSummary(note, ratingSummaries.get(note.getId()))));
+		return PageResponse.from(result.map(this::toNoteSummary));
 	}
 
 	@GetMapping("/notes/{id}")
 	public NoteDetailResponse getNote(@PathVariable("id") UUID id) {
 		NoteEntity note = noteService.getPublished(id);
-		RatingService.RatingSummary ratingSummary = ratingService.getSummary(id);
-		return toNoteDetailResponse(note, ratingSummary);
+		return toNoteDetailResponse(note);
 	}
 
 	@GetMapping("/courses")
@@ -96,7 +88,7 @@ public class CatalogController {
 		return toCourseResponse(course);
 	}
 
-	private NoteSummaryResponse toNoteSummary(NoteEntity note, RatingService.RatingSummary ratingSummary) {
+	private NoteSummaryResponse toNoteSummary(NoteEntity note) {
 		return new NoteSummaryResponse(
 				note.getId(),
 				note.getSeller().getId(),
@@ -109,12 +101,13 @@ public class CatalogController {
 				note.getStatus(),
 				note.getTags(),
 				note.getCreatedAt(),
-				ratingSummary != null ? ratingSummary.averageRating() : null,
-				ratingSummary != null ? (int) ratingSummary.ratingCount() : 0
+				note.getAverageRating(),
+				note.getRatingCount()
 		);
 	}
 
 	private NoteResponse toNoteResponse(NoteEntity note) {
+		int remaining = Math.max(0, 4 - note.getSubmissionCount());
 		return new NoteResponse(
 				note.getId(),
 				note.getSeller().getId(),
@@ -127,11 +120,15 @@ public class CatalogController {
 				note.getPrice(),
 				note.getStatus(),
 				note.getTags(),
-				note.getCreatedAt()
+				note.getCreatedAt(),
+				note.getRejectionReason(),
+				note.getSubmissionCount(),
+				remaining,
+				note.getReviewedAt()
 		);
 	}
 
-	private NoteDetailResponse toNoteDetailResponse(NoteEntity note, RatingService.RatingSummary ratingSummary) {
+	private NoteDetailResponse toNoteDetailResponse(NoteEntity note) {
 		SellerProfileEntity profile = note.getSeller().getSellerProfile();
 		String displayName;
 		if (profile != null && profile.getDisplayName() != null) {
@@ -172,8 +169,8 @@ public class CatalogController {
 				note.getContentType(),
 				sellerInfo,
 				nicheInfo,
-				ratingSummary != null ? ratingSummary.averageRating() : null,
-				ratingSummary != null ? (int) ratingSummary.ratingCount() : 0
+				note.getAverageRating(),
+				note.getRatingCount()
 		);
 	}
 

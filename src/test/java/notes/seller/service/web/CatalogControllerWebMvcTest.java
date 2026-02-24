@@ -9,12 +9,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import notes.seller.service.application.catalog.CatalogQueryService;
 import notes.seller.service.application.catalog.CourseService;
 import notes.seller.service.application.catalog.NoteService;
-import notes.seller.service.application.rating.RatingService;
 import notes.seller.service.domain.catalog.CourseStatus;
 import notes.seller.service.domain.catalog.NoteStatus;
 import notes.seller.service.persistence.catalog.CourseEntity;
@@ -51,8 +49,6 @@ class CatalogControllerWebMvcTest {
 	@MockitoBean
 	private CourseService courseService;
 	@MockitoBean
-	private RatingService ratingService;
-	@MockitoBean
 	private UserDetailsServiceImpl userDetailsService;
 
 	private static NicheEntity nicheWithCategory() {
@@ -82,7 +78,6 @@ class CatalogControllerWebMvcTest {
 		note.setNiche(nicheWithCategory());
 		when(catalogQueryService.findNotes(any(), any(), any(), any(), any(), any(), any()))
 				.thenReturn(new PageImpl<>(List.of(note), PageRequest.of(0, 20), 1));
-		when(ratingService.getSummaries(any())).thenReturn(Map.of());
 
 		mockMvc.perform(get("/api/v1/notes"))
 				.andExpect(status().isOk())
@@ -113,9 +108,11 @@ class CatalogControllerWebMvcTest {
 		NicheEntity niche = nicheWithCategory();
 		note.setNiche(niche);
 
+		note.setAverageRating(4.5);
+		note.setRatingCount(10);
+
 		when(noteService.getPublished(note.getId())).thenReturn(note);
 		when(catalogQueryService.countPublishedNotesBySeller(seller.getId())).thenReturn(7L);
-		when(ratingService.getSummary(note.getId())).thenReturn(new RatingService.RatingSummary(4.5, 10));
 
 		mockMvc.perform(get("/api/v1/notes/{id}", note.getId()))
 				.andExpect(status().isOk())
@@ -152,7 +149,6 @@ class CatalogControllerWebMvcTest {
 
 		when(noteService.getPublished(note.getId())).thenReturn(note);
 		when(catalogQueryService.countPublishedNotesBySeller(seller.getId())).thenReturn(0L);
-		when(ratingService.getSummary(note.getId())).thenReturn(new RatingService.RatingSummary(null, 0));
 
 		mockMvc.perform(get("/api/v1/notes/{id}", note.getId()))
 				.andExpect(status().isOk())

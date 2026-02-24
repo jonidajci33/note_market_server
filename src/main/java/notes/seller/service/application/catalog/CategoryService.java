@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.UUID;
 import notes.seller.service.persistence.catalog.CategoryEntity;
 import notes.seller.service.persistence.catalog.CategoryRepository;
+import notes.seller.service.persistence.catalog.NicheRepository;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -14,9 +15,11 @@ import org.springframework.web.server.ResponseStatusException;
 @Transactional
 public class CategoryService {
 	private final CategoryRepository categoryRepository;
+	private final NicheRepository nicheRepository;
 
-	public CategoryService(CategoryRepository categoryRepository) {
+	public CategoryService(CategoryRepository categoryRepository, NicheRepository nicheRepository) {
 		this.categoryRepository = categoryRepository;
+		this.nicheRepository = nicheRepository;
 	}
 
 	public List<CategoryEntity> listAll() {
@@ -50,5 +53,13 @@ public class CategoryService {
 			category.setName(name);
 		}
 		return categoryRepository.save(category);
+	}
+
+	public void delete(UUID id) {
+		CategoryEntity category = getById(id);
+		if (nicheRepository.existsByCategoryId(id)) {
+			throw new ResponseStatusException(HttpStatus.CONFLICT, "Cannot delete category with associated niches");
+		}
+		categoryRepository.delete(category);
 	}
 }

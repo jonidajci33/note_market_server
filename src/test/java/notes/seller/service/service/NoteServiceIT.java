@@ -9,7 +9,6 @@ import java.time.Instant;
 import java.util.Set;
 import notes.seller.service.application.catalog.NoteService;
 import notes.seller.service.application.catalog.UploadSession;
-import notes.seller.service.domain.catalog.NoteStatus;
 import notes.seller.service.integration.storage.PresignedUrl;
 import notes.seller.service.integration.storage.StorageService;
 import notes.seller.service.persistence.catalog.CourseEntity;
@@ -80,15 +79,15 @@ class NoteServiceIT extends AbstractPostgresIT {
 	}
 
 	@Test
-	void update_shouldChangeStatusAndTags() {
+	void update_shouldChangeTitleAndTags() {
 		UserEntity seller = userRepository.save(dataFactory.aSellerUser());
 		NicheEntity niche = nicheRepository.save(dataFactory.aNiche());
 		NoteEntity note = noteRepository.save(dataFactory.aNote(seller, niche));
 
 		NoteEntity updated = noteService.update(seller.getId(), note.getId(), null, null, "New Title",
-				"New Desc", new BigDecimal("20.00"), NoteStatus.PUBLISHED, Set.of("tag-a"));
+				"New Desc", new BigDecimal("20.00"), Set.of("tag-a"));
 
-		assertThat(updated.getStatus()).isEqualTo(NoteStatus.PUBLISHED);
+		assertThat(updated.getTitle()).isEqualTo("New Title");
 		assertThat(updated.getTags()).containsExactly("tag-a");
 	}
 

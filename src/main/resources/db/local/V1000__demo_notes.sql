@@ -19,11 +19,11 @@ values
   ('00000000-0000-0000-0000-000000000102', 'Beta Study Lab', 'Computer science and interview prep notes.', 'demo')
 on conflict (user_id) do nothing;
 
-insert into niches (id, slug, name, parent_id, created_at, updated_at)
+insert into niches (id, slug, name, category_id, created_at, updated_at)
 values
-  ('00000000-0000-0000-0000-000000000201', 'technology', 'Technology', null, now() - interval '12 days', now() - interval '2 days'),
-  ('00000000-0000-0000-0000-000000000202', 'software-engineering', 'Software Engineering', '00000000-0000-0000-0000-000000000201', now() - interval '11 days', now() - interval '2 days'),
-  ('00000000-0000-0000-0000-000000000203', 'machine-learning', 'Machine Learning', '00000000-0000-0000-0000-000000000201', now() - interval '11 days', now() - interval '2 days')
+  ('00000000-0000-0000-0000-000000000201', 'technology', 'Technology', '00000000-0000-0000-0000-00000000bb01', now() - interval '12 days', now() - interval '2 days'),
+  ('00000000-0000-0000-0000-000000000202', 'software-engineering', 'Software Engineering', '00000000-0000-0000-0000-00000000bb01', now() - interval '11 days', now() - interval '2 days'),
+  ('00000000-0000-0000-0000-000000000203', 'machine-learning', 'Machine Learning', '00000000-0000-0000-0000-00000000bb01', now() - interval '11 days', now() - interval '2 days')
 on conflict (slug) do nothing;
 
 insert into courses (id, seller_id, niche_id, title, description, price, status, created_at, updated_at)

@@ -1,3 +1,7 @@
+CREATE SCHEMA IF NOT EXISTS note_seller;
+
+SET search_path TO note_seller;
+
 create table users (
   id uuid primary key,
   email varchar(320) not null unique,

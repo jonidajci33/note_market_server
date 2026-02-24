@@ -18,6 +18,10 @@ public record NoteResponse(
 		BigDecimal price,
 		NoteStatus status,
 		Set<String> tags,
-		Instant createdAt
+		Instant createdAt,
+		String rejectionReason,
+		int submissionCount,
+		int remainingSubmissions,
+		Instant reviewedAt
 ) {
 }

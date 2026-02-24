@@ -12,8 +12,10 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -78,8 +80,26 @@ public class NoteEntity extends BaseEntity {
 	@Column(nullable = false, length = 20)
 	private NoteStatus status = NoteStatus.DRAFT;
 
+	@Column(name = "submission_count", nullable = false)
+	private int submissionCount = 1;
+
+	@Column(name = "rejection_reason", columnDefinition = "text")
+	private String rejectionReason;
+
+	@Column(name = "reviewed_by")
+	private UUID reviewedBy;
+
+	@Column(name = "reviewed_at")
+	private Instant reviewedAt;
+
 	@ElementCollection(fetch = FetchType.EAGER)
 	@CollectionTable(name = "note_tags", joinColumns = @JoinColumn(name = "note_id"))
 	@Column(name = "tag")
 	private Set<String> tags = new HashSet<>();
+
+	@Column(name = "average_rating")
+	private Double averageRating;
+
+	@Column(name = "rating_count", nullable = false)
+	private int ratingCount = 0;
 }

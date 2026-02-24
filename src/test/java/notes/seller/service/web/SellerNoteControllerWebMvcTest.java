@@ -15,6 +15,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import notes.seller.service.application.approval.NoteApprovalService;
 import notes.seller.service.application.catalog.NoteService;
 import notes.seller.service.application.catalog.UploadSession;
 import notes.seller.service.domain.catalog.NoteStatus;
@@ -36,7 +37,9 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.server.ResponseStatusException;
 
 @WebMvcTest(SellerNoteController.class)
 @Import({SecurityConfig.class, GlobalExceptionHandler.class})
@@ -48,6 +51,8 @@ class SellerNoteControllerWebMvcTest {
 	private ObjectMapper objectMapper;
 	@MockitoBean
 	private NoteService noteService;
+	@MockitoBean
+	private NoteApprovalService noteApprovalService;
 	@MockitoBean
 	private UserDetailsServiceImpl userDetailsService;
 
@@ -62,24 +67,32 @@ class SellerNoteControllerWebMvcTest {
 		return niche;
 	}
 
-	@Test
-	void listMyNotes_shouldReturnSellerNotes() throws Exception {
-		UUID sellerId = UUID.randomUUID();
+	private static NoteEntity aDraftNote(UUID sellerId) {
 		NoteEntity note = new NoteEntity();
 		note.setId(UUID.randomUUID());
 		note.setTitle("Draft Note");
 		note.setStatus(NoteStatus.DRAFT);
+		note.setSubmissionCount(1);
 		UserEntity seller = new UserEntity();
 		seller.setId(sellerId);
 		note.setSeller(seller);
 		note.setNiche(nicheWithCategory(UUID.randomUUID()));
+		return note;
+	}
+
+	@Test
+	void listMyNotes_shouldReturnSellerNotes() throws Exception {
+		UUID sellerId = UUID.randomUUID();
+		NoteEntity note = aDraftNote(sellerId);
 		when(noteService.listBySeller(eq(sellerId))).thenReturn(List.of(note));
 
 		mockMvc.perform(get("/api/v1/seller/notes")
 						.with(jwtWithRole(sellerId, "CLIENT")))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$[0].title").value("Draft Note"))
-				.andExpect(jsonPath("$[0].status").value("DRAFT"));
+				.andExpect(jsonPath("$[0].status").value("DRAFT"))
+				.andExpect(jsonPath("$[0].submissionCount").value(1))
+				.andExpect(jsonPath("$[0].remainingSubmissions").value(3));
 	}
 
 	@Test
@@ -97,6 +110,7 @@ class SellerNoteControllerWebMvcTest {
 		note.setId(UUID.randomUUID());
 		note.setTitle("Title");
 		note.setStatus(NoteStatus.DRAFT);
+		note.setSubmissionCount(1);
 		UserEntity seller = new UserEntity();
 		seller.setId(sellerId);
 		note.setSeller(seller);
@@ -121,6 +135,7 @@ class SellerNoteControllerWebMvcTest {
 		note.setId(UUID.randomUUID());
 		note.setTitle("Title");
 		note.setStatus(NoteStatus.DRAFT);
+		note.setSubmissionCount(1);
 		UserEntity seller = new UserEntity();
 		seller.setId(sellerId);
 		note.setSeller(seller);
@@ -155,6 +170,7 @@ class SellerNoteControllerWebMvcTest {
 		note.setId(UUID.randomUUID());
 		note.setTitle("Title");
 		note.setStatus(NoteStatus.DRAFT);
+		note.setSubmissionCount(1);
 		UserEntity seller = new UserEntity();
 		seller.setId(sellerId);
 		note.setSeller(seller);
@@ -184,5 +200,41 @@ class SellerNoteControllerWebMvcTest {
 						.content(objectMapper.writeValueAsString(request)))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.fileKey").value("notes/cover.png"));
+	}
+
+	@Test
+	void submit_shouldReturnPendingApproval() throws Exception {
+		UUID sellerId = UUID.randomUUID();
+		UUID noteId = UUID.randomUUID();
+		NoteEntity note = new NoteEntity();
+		note.setId(noteId);
+		note.setTitle("Ready Note");
+		note.setStatus(NoteStatus.PENDING_APPROVAL);
+		note.setSubmissionCount(1);
+		note.setFileKey("notes/test.pdf");
+		UserEntity seller = new UserEntity();
+		seller.setId(sellerId);
+		note.setSeller(seller);
+		note.setNiche(nicheWithCategory(UUID.randomUUID()));
+		when(noteApprovalService.submitForApproval(eq(noteId), eq(sellerId))).thenReturn(note);
+
+		mockMvc.perform(post("/api/v1/seller/notes/{id}/submit", noteId)
+						.with(jwtWithRole(sellerId, "SELLER")))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.status").value("PENDING_APPROVAL"))
+				.andExpect(jsonPath("$.submissionCount").value(1))
+				.andExpect(jsonPath("$.remainingSubmissions").value(3));
+	}
+
+	@Test
+	void submit_shouldReturn422WhenLimitReached() throws Exception {
+		UUID sellerId = UUID.randomUUID();
+		UUID noteId = UUID.randomUUID();
+		when(noteApprovalService.submitForApproval(eq(noteId), eq(sellerId)))
+				.thenThrow(new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Maximum resubmission limit reached"));
+
+		mockMvc.perform(post("/api/v1/seller/notes/{id}/submit", noteId)
+						.with(jwtWithRole(sellerId, "SELLER")))
+				.andExpect(status().isUnprocessableEntity());
 	}
 }

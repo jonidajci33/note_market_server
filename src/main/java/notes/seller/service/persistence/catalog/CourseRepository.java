@@ -7,4 +7,5 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 public interface CourseRepository extends JpaRepository<CourseEntity, UUID>, JpaSpecificationExecutor<CourseEntity> {
 	Optional<CourseEntity> findByIdAndSellerId(UUID id, UUID sellerId);
+	boolean existsByNicheId(UUID nicheId);
 }

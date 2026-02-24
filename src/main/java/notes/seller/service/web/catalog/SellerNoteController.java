@@ -3,6 +3,7 @@ package notes.seller.service.web.catalog;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
+import notes.seller.service.application.approval.NoteApprovalService;
 import notes.seller.service.application.catalog.NoteService;
 import notes.seller.service.application.catalog.UploadSession;
 import notes.seller.service.persistence.catalog.NoteEntity;
@@ -28,9 +29,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class SellerNoteController {
 	private static final Logger log = LoggerFactory.getLogger(SellerNoteController.class);
 	private final NoteService noteService;
+	private final NoteApprovalService noteApprovalService;
 
-	public SellerNoteController(NoteService noteService) {
+	public SellerNoteController(NoteService noteService, NoteApprovalService noteApprovalService) {
 		this.noteService = noteService;
+		this.noteApprovalService = noteApprovalService;
 	}
 
 	@GetMapping
@@ -55,7 +58,15 @@ public class SellerNoteController {
 							  Authentication authentication) {
 		UUID sellerId = SecurityUtils.getUserId(authentication);
 		NoteEntity note = noteService.update(sellerId, id, request.nicheId(), request.courseId(), request.title(),
-				request.description(), request.price(), request.status(), request.tags());
+				request.description(), request.price(), request.tags());
+		return toResponse(note);
+	}
+
+	@PostMapping("/{id}/submit")
+	public NoteResponse submitForApproval(@PathVariable("id") UUID id, Authentication authentication) {
+		UUID sellerId = SecurityUtils.getUserId(authentication);
+		log.info("Submit for approval: noteId={} sellerId={}", id, sellerId);
+		NoteEntity note = noteApprovalService.submitForApproval(id, sellerId);
 		return toResponse(note);
 	}
 
@@ -88,6 +99,7 @@ public class SellerNoteController {
 	}
 
 	private NoteResponse toResponse(NoteEntity note) {
+		int remaining = Math.max(0, 4 - note.getSubmissionCount());
 		return new NoteResponse(
 				note.getId(),
 				note.getSeller().getId(),
@@ -100,7 +112,11 @@ public class SellerNoteController {
 				note.getPrice(),
 				note.getStatus(),
 				note.getTags(),
-				note.getCreatedAt()
+				note.getCreatedAt(),
+				note.getRejectionReason(),
+				note.getSubmissionCount(),
+				remaining,
+				note.getReviewedAt()
 		);
 	}
 }

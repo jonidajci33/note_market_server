@@ -2,8 +2,11 @@ package notes.seller.service.web;
 
 import static notes.seller.service.support.JwtTestUtils.jwtWithRole;
 import static org.hamcrest.Matchers.hasSize;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -27,7 +30,9 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.server.ResponseStatusException;
 
 @WebMvcTest(NicheController.class)
 @Import({SecurityConfig.class, GlobalExceptionHandler.class})
@@ -100,6 +105,58 @@ class NicheControllerWebMvcTest {
 						.with(jwtWithRole(UUID.randomUUID(), "CLIENT"))
 						.contentType(APPLICATION_JSON)
 						.content(objectMapper.writeValueAsString(request)))
+				.andExpect(status().isForbidden());
+	}
+
+	// --- DELETE tests ---
+
+	@Test
+	void delete_shouldReturn204ForSysadmin() throws Exception {
+		UUID nicheId = UUID.randomUUID();
+		doNothing().when(nicheService).delete(nicheId);
+
+		mockMvc.perform(delete("/api/v1/niches/{id}", nicheId)
+						.with(jwtWithRole(UUID.randomUUID(), "SYSADMIN")))
+				.andExpect(status().isNoContent());
+	}
+
+	@Test
+	void delete_shouldReturn409WhenNicheHasNotes() throws Exception {
+		UUID nicheId = UUID.randomUUID();
+		doThrow(new ResponseStatusException(HttpStatus.CONFLICT, "Cannot delete niche with associated notes"))
+				.when(nicheService).delete(nicheId);
+
+		mockMvc.perform(delete("/api/v1/niches/{id}", nicheId)
+						.with(jwtWithRole(UUID.randomUUID(), "SYSADMIN")))
+				.andExpect(status().isConflict())
+				.andExpect(jsonPath("$.message").value("Cannot delete niche with associated notes"));
+	}
+
+	@Test
+	void delete_shouldReturn404WhenNicheNotFound() throws Exception {
+		UUID nicheId = UUID.randomUUID();
+		doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Niche not found"))
+				.when(nicheService).delete(nicheId);
+
+		mockMvc.perform(delete("/api/v1/niches/{id}", nicheId)
+						.with(jwtWithRole(UUID.randomUUID(), "SYSADMIN")))
+				.andExpect(status().isNotFound());
+	}
+
+	@Test
+	void delete_shouldReturn401WhenUnauthenticated() throws Exception {
+		UUID nicheId = UUID.randomUUID();
+
+		mockMvc.perform(delete("/api/v1/niches/{id}", nicheId))
+				.andExpect(status().isUnauthorized());
+	}
+
+	@Test
+	void delete_shouldReturn403WhenNotSysadmin() throws Exception {
+		UUID nicheId = UUID.randomUUID();
+
+		mockMvc.perform(delete("/api/v1/niches/{id}", nicheId)
+						.with(jwtWithRole(UUID.randomUUID(), "SELLER")))
 				.andExpect(status().isForbidden());
 	}
 }

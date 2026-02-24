@@ -73,9 +73,15 @@ public class NoteService {
 	}
 
 	public NoteEntity update(UUID sellerId, UUID noteId, UUID nicheId, UUID courseId, String title, String description,
-						 BigDecimal price, NoteStatus status, Set<String> tags) {
+						 BigDecimal price, Set<String> tags) {
 		NoteEntity note = noteRepository.findByIdAndSellerId(noteId, sellerId)
 				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Note not found"));
+
+		if (note.getStatus() != NoteStatus.DRAFT && note.getStatus() != NoteStatus.REJECTED) {
+			throw new ResponseStatusException(HttpStatus.CONFLICT,
+					"Note can only be edited in DRAFT or REJECTED status");
+		}
+
 		if (nicheId != null) {
 			NicheEntity niche = nicheRepository.findById(nicheId)
 					.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Niche not found"));
@@ -97,9 +103,6 @@ public class NoteService {
 		}
 		if (price != null) {
 			note.setPrice(price);
-		}
-		if (status != null) {
-			note.setStatus(status);
 		}
 		if (tags != null) {
 			note.setTags(new HashSet<>(tags));

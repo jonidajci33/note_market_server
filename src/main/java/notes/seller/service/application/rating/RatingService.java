@@ -68,11 +68,15 @@ public class RatingService {
 		entity.setRating(rating);
 		entity.setReviewText(reviewText);
 
+		RatingEntity saved;
 		try {
-			return ratingRepository.save(entity);
+			saved = ratingRepository.save(entity);
 		} catch (DataIntegrityViolationException e) {
 			throw new ResponseStatusException(HttpStatus.CONFLICT, "You have already rated this note");
 		}
+
+		recalculateRatingAggregates(note);
+		return saved;
 	}
 
 	public RatingEntity update(UUID userId, UUID noteId, int rating, String reviewText) {
@@ -83,13 +87,32 @@ public class RatingService {
 		}
 		entity.setRating(rating);
 		entity.setReviewText(reviewText);
-		return ratingRepository.save(entity);
+		RatingEntity saved = ratingRepository.save(entity);
+
+		recalculateRatingAggregates(entity.getNote());
+		return saved;
 	}
 
 	public void delete(UUID userId, UUID noteId) {
 		RatingEntity entity = ratingRepository.findByNoteIdAndUserId(noteId, userId)
 				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Rating not found"));
+		NoteEntity note = entity.getNote();
 		ratingRepository.delete(entity);
+		ratingRepository.flush();
+
+		recalculateRatingAggregates(note);
+	}
+
+	private void recalculateRatingAggregates(NoteEntity note) {
+		Object[] row = ratingRepository.findSummaryByNoteId(note.getId());
+		if (row == null || row[0] == null) {
+			note.setAverageRating(null);
+			note.setRatingCount(0);
+		} else {
+			note.setAverageRating(((Number) row[0]).doubleValue());
+			note.setRatingCount(((Number) row[1]).intValue());
+		}
+		noteRepository.save(note);
 	}
 
 	@Transactional(readOnly = true)
