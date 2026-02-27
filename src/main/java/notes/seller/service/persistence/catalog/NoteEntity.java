@@ -1,14 +1,14 @@
 package notes.seller.service.persistence.catalog;
 
-import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
-import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
@@ -34,9 +34,6 @@ import notes.seller.service.persistence.identity.UserEntity;
 		@Index(name = "idx_notes_created_at", columnList = "created_at")
 })
 public class NoteEntity extends BaseEntity {
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "course_id")
-	private CourseEntity course;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "seller_id", nullable = false)
@@ -92,10 +89,13 @@ public class NoteEntity extends BaseEntity {
 	@Column(name = "reviewed_at")
 	private Instant reviewedAt;
 
-	@ElementCollection(fetch = FetchType.EAGER)
-	@CollectionTable(name = "note_tags", joinColumns = @JoinColumn(name = "note_id"))
-	@Column(name = "tag")
-	private Set<String> tags = new HashSet<>();
+	@ManyToMany(fetch = FetchType.LAZY)
+	@JoinTable(
+			name = "note_tags",
+			joinColumns = @JoinColumn(name = "note_id"),
+			inverseJoinColumns = @JoinColumn(name = "tag_id")
+	)
+	private Set<TagEntity> tags = new HashSet<>();
 
 	@Column(name = "average_rating")
 	private Double averageRating;

@@ -105,7 +105,7 @@ class SellerNoteControllerWebMvcTest {
 	void create_shouldReturnDraftStatus() throws Exception {
 		UUID sellerId = UUID.randomUUID();
 		UUID nicheId = UUID.randomUUID();
-		NoteCreateRequest request = new NoteCreateRequest(nicheId, null, "Title", "Desc", null, Set.of("tag"));
+		NoteCreateRequest request = new NoteCreateRequest(nicheId, "Title", "Desc", null, Set.of(UUID.randomUUID()));
 		NoteEntity note = new NoteEntity();
 		note.setId(UUID.randomUUID());
 		note.setTitle("Title");
@@ -115,7 +115,7 @@ class SellerNoteControllerWebMvcTest {
 		seller.setId(sellerId);
 		note.setSeller(seller);
 		note.setNiche(nicheWithCategory(nicheId));
-		when(noteService.create(eq(sellerId), eq(nicheId), any(), eq("Title"), eq("Desc"), any(), any()))
+		when(noteService.create(eq(sellerId), eq(nicheId), eq("Title"), eq("Desc"), any(), any()))
 				.thenReturn(note);
 
 		mockMvc.perform(post("/api/v1/seller/notes")
@@ -130,7 +130,7 @@ class SellerNoteControllerWebMvcTest {
 	void create_shouldAllowSeller() throws Exception {
 		UUID sellerId = UUID.randomUUID();
 		UUID nicheId = UUID.randomUUID();
-		NoteCreateRequest request = new NoteCreateRequest(nicheId, null, "Title", "Desc", null, Set.of("tag"));
+		NoteCreateRequest request = new NoteCreateRequest(nicheId, "Title", "Desc", null, Set.of(UUID.randomUUID()));
 		NoteEntity note = new NoteEntity();
 		note.setId(UUID.randomUUID());
 		note.setTitle("Title");
@@ -140,7 +140,7 @@ class SellerNoteControllerWebMvcTest {
 		seller.setId(sellerId);
 		note.setSeller(seller);
 		note.setNiche(nicheWithCategory(nicheId));
-		when(noteService.create(eq(sellerId), eq(nicheId), any(), eq("Title"), eq("Desc"), any(), any()))
+		when(noteService.create(eq(sellerId), eq(nicheId), eq("Title"), eq("Desc"), any(), any()))
 				.thenReturn(note);
 
 		mockMvc.perform(post("/api/v1/seller/notes")
@@ -153,7 +153,7 @@ class SellerNoteControllerWebMvcTest {
 
 	@Test
 	void create_shouldRejectUnauthorized() throws Exception {
-		NoteCreateRequest request = new NoteCreateRequest(UUID.randomUUID(), null, "Title", "Desc", null, Set.of("tag"));
+		NoteCreateRequest request = new NoteCreateRequest(UUID.randomUUID(), "Title", "Desc", null, Set.of(UUID.randomUUID()));
 
 		mockMvc.perform(post("/api/v1/seller/notes")
 						.contentType(APPLICATION_JSON)
@@ -165,7 +165,7 @@ class SellerNoteControllerWebMvcTest {
 	void create_shouldAllowAuthenticatedClientRole() throws Exception {
 		UUID sellerId = UUID.randomUUID();
 		UUID nicheId = UUID.randomUUID();
-		NoteCreateRequest request = new NoteCreateRequest(nicheId, null, "Title", "Desc", null, Set.of("tag"));
+		NoteCreateRequest request = new NoteCreateRequest(nicheId, "Title", "Desc", null, Set.of(UUID.randomUUID()));
 		NoteEntity note = new NoteEntity();
 		note.setId(UUID.randomUUID());
 		note.setTitle("Title");
@@ -175,7 +175,7 @@ class SellerNoteControllerWebMvcTest {
 		seller.setId(sellerId);
 		note.setSeller(seller);
 		note.setNiche(nicheWithCategory(nicheId));
-		when(noteService.create(eq(sellerId), eq(nicheId), any(), eq("Title"), eq("Desc"), any(), any()))
+		when(noteService.create(eq(sellerId), eq(nicheId), eq("Title"), eq("Desc"), any(), any()))
 				.thenReturn(note);
 
 		mockMvc.perform(post("/api/v1/seller/notes")

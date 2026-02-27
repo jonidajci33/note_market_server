@@ -8,10 +8,9 @@ import java.util.UUID;
 
 public record NoteCreateRequest(
 		@NotNull UUID nicheId,
-		UUID courseId,
 		@NotBlank String title,
 		String description,
 		BigDecimal price,
-		Set<String> tags
+		Set<UUID> tagIds
 ) {
 }

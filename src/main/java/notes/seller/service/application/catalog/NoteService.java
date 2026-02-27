@@ -9,12 +9,11 @@ import notes.seller.service.integration.storage.StorageDownloadRequest;
 import notes.seller.service.integration.storage.PresignedUrl;
 import notes.seller.service.integration.storage.StorageService;
 import notes.seller.service.integration.storage.StorageUploadRequest;
-import notes.seller.service.persistence.catalog.CourseEntity;
-import notes.seller.service.persistence.catalog.CourseRepository;
 import notes.seller.service.persistence.catalog.NicheEntity;
 import notes.seller.service.persistence.catalog.NicheRepository;
 import notes.seller.service.persistence.catalog.NoteEntity;
 import notes.seller.service.persistence.catalog.NoteRepository;
+import notes.seller.service.persistence.catalog.TagEntity;
 import notes.seller.service.persistence.identity.UserEntity;
 import notes.seller.service.persistence.identity.UserRepository;
 import org.slf4j.Logger;
@@ -29,21 +28,21 @@ import org.springframework.web.server.ResponseStatusException;
 public class NoteService {
 	private static final Logger log = LoggerFactory.getLogger(NoteService.class);
 	private final NoteRepository noteRepository;
-	private final CourseRepository courseRepository;
 	private final NicheRepository nicheRepository;
 	private final UserRepository userRepository;
 	private final StorageService storageService;
+	private final TagService tagService;
 
 	public NoteService(NoteRepository noteRepository,
-				  CourseRepository courseRepository,
 				  NicheRepository nicheRepository,
 				  UserRepository userRepository,
-				  StorageService storageService) {
+				  StorageService storageService,
+				  TagService tagService) {
 		this.noteRepository = noteRepository;
-		this.courseRepository = courseRepository;
 		this.nicheRepository = nicheRepository;
 		this.userRepository = userRepository;
 		this.storageService = storageService;
+		this.tagService = tagService;
 	}
 
 	@Transactional(readOnly = true)
@@ -51,29 +50,28 @@ public class NoteService {
 		return noteRepository.findBySellerIdOrderByCreatedAtDesc(sellerId);
 	}
 
-	public NoteEntity create(UUID sellerId, UUID nicheId, UUID courseId, String title, String description,
-						 BigDecimal price, Set<String> tags) {
+	public NoteEntity create(UUID sellerId, UUID nicheId, String title, String description,
+						 BigDecimal price, Set<UUID> tagIds) {
 		UserEntity seller = userRepository.findById(sellerId)
 				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 		NicheEntity niche = nicheRepository.findById(nicheId)
 				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Niche not found"));
-		CourseEntity course = null; // course logic removed
 		NoteEntity note = new NoteEntity();
 		note.setSeller(seller);
 		note.setNiche(niche);
-		note.setCourse(course);
 		note.setTitle(title);
 		note.setDescription(description);
 		note.setPrice(price);
 		note.setStatus(NoteStatus.DRAFT);
-		if (tags != null && !tags.isEmpty()) {
-			note.setTags(new HashSet<>(tags));
+		if (tagIds != null && !tagIds.isEmpty()) {
+			Set<TagEntity> resolvedTags = tagService.resolveTagIds(tagIds);
+			note.setTags(resolvedTags);
 		}
 		return noteRepository.save(note);
 	}
 
-	public NoteEntity update(UUID sellerId, UUID noteId, UUID nicheId, UUID courseId, String title, String description,
-						 BigDecimal price, Set<String> tags) {
+	public NoteEntity update(UUID sellerId, UUID noteId, UUID nicheId, String title, String description,
+						 BigDecimal price, Set<UUID> tagIds) {
 		NoteEntity note = noteRepository.findByIdAndSellerId(noteId, sellerId)
 				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Note not found"));
 
@@ -82,18 +80,11 @@ public class NoteService {
 					"Note can only be edited in DRAFT or REJECTED status");
 		}
 
-		if (nicheId != null) {
+		if (nicheId != null && !nicheId.equals(note.getNiche().getId())) {
 			NicheEntity niche = nicheRepository.findById(nicheId)
 					.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Niche not found"));
 			note.setNiche(niche);
-		}
-		if (courseId != null) {
-			CourseEntity course = courseRepository.findById(courseId)
-					.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Course not found"));
-			if (!course.getSeller().getId().equals(sellerId)) {
-				throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Course does not belong to seller");
-			}
-			note.setCourse(course);
+			note.getTags().clear();
 		}
 		if (title != null && !title.isBlank()) {
 			note.setTitle(title);
@@ -104,8 +95,8 @@ public class NoteService {
 		if (price != null) {
 			note.setPrice(price);
 		}
-		if (tags != null) {
-			note.setTags(new HashSet<>(tags));
+		if (tagIds != null) {
+			note.setTags(tagIds.isEmpty() ? new HashSet<>() : tagService.resolveTagIds(tagIds));
 		}
 		return noteRepository.save(note);
 	}

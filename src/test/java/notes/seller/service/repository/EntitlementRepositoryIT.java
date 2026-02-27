@@ -50,7 +50,7 @@ class EntitlementRepositoryIT extends AbstractPostgresIT {
 	void findByClientId_shouldReturnAllEntitlements() {
 		UserEntity client = userRepository.save(dataFactory.aClientUser());
 		entitlementRepository.save(dataFactory.anEntitlement(client, ItemType.NOTE, UUID.randomUUID()));
-		entitlementRepository.save(dataFactory.anEntitlement(client, ItemType.COURSE, UUID.randomUUID()));
+		entitlementRepository.save(dataFactory.anEntitlement(client, ItemType.NOTE, UUID.randomUUID()));
 
 		List<EntitlementEntity> entitlements = entitlementRepository.findByClientId(client.getId());
 

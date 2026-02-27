@@ -6,10 +6,9 @@ import java.util.UUID;
 
 public record NoteUpdateRequest(
 		UUID nicheId,
-		UUID courseId,
 		String title,
 		String description,
 		BigDecimal price,
-		Set<String> tags
+		Set<UUID> tagIds
 ) {
 }

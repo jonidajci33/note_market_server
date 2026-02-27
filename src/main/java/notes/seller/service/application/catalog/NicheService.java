@@ -2,7 +2,6 @@ package notes.seller.service.application.catalog;
 
 import java.util.List;
 import java.util.UUID;
-import notes.seller.service.persistence.catalog.CourseRepository;
 import notes.seller.service.persistence.catalog.NicheEntity;
 import notes.seller.service.persistence.catalog.NicheRepository;
 import notes.seller.service.persistence.catalog.NoteRepository;
@@ -18,14 +17,12 @@ public class NicheService {
 	private final NicheRepository nicheRepository;
 	private final CategoryService categoryService;
 	private final NoteRepository noteRepository;
-	private final CourseRepository courseRepository;
 
 	public NicheService(NicheRepository nicheRepository, CategoryService categoryService,
-						NoteRepository noteRepository, CourseRepository courseRepository) {
+						NoteRepository noteRepository) {
 		this.nicheRepository = nicheRepository;
 		this.categoryService = categoryService;
 		this.noteRepository = noteRepository;
-		this.courseRepository = courseRepository;
 	}
 
 	public List<NicheEntity> listAll() {
@@ -73,9 +70,6 @@ public class NicheService {
 		NicheEntity niche = getById(id);
 		if (noteRepository.existsByNicheId(id)) {
 			throw new ResponseStatusException(HttpStatus.CONFLICT, "Cannot delete niche with associated notes");
-		}
-		if (courseRepository.existsByNicheId(id)) {
-			throw new ResponseStatusException(HttpStatus.CONFLICT, "Cannot delete niche with associated courses");
 		}
 		nicheRepository.delete(niche);
 	}

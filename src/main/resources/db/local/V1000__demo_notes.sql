@@ -26,38 +26,46 @@ values
   ('00000000-0000-0000-0000-000000000203', 'machine-learning', 'Machine Learning', '00000000-0000-0000-0000-00000000bb01', now() - interval '11 days', now() - interval '2 days')
 on conflict (slug) do nothing;
 
-insert into courses (id, seller_id, niche_id, title, description, price, status, created_at, updated_at)
+insert into notes (id, seller_id, niche_id, title, description, price, file_key, content_type, file_size, checksum_sha256, pages, status, created_at, updated_at)
 values
-  ('00000000-0000-0000-0000-000000000301', '00000000-0000-0000-0000-000000000101', '00000000-0000-0000-0000-000000000202', 'Spring Boot API Engineering', 'Course with practical backend architecture patterns.', 49.99, 'PUBLISHED', now() - interval '8 days', now() - interval '1 day'),
-  ('00000000-0000-0000-0000-000000000302', '00000000-0000-0000-0000-000000000102', '00000000-0000-0000-0000-000000000203', 'Applied ML System Design', 'Production-minded machine learning notes and checklists.', 59.99, 'PUBLISHED', now() - interval '7 days', now() - interval '1 day')
-on conflict (id) do nothing;
-
-insert into notes (id, course_id, seller_id, niche_id, title, description, price, file_key, content_type, file_size, checksum_sha256, pages, status, created_at, updated_at)
-values
-  ('00000000-0000-0000-0000-000000000401', '00000000-0000-0000-0000-000000000301', '00000000-0000-0000-0000-000000000101', '00000000-0000-0000-0000-000000000202',
+  ('00000000-0000-0000-0000-000000000401', '00000000-0000-0000-0000-000000000101', '00000000-0000-0000-0000-000000000202',
    'REST API Security Checklist', 'JWT, RBAC, CORS, and secure error-handling checklist for Spring services.', 12.99, 'demo/rest-api-security-checklist.pdf',
    'application/pdf', 245760, 'demo-checksum-401', 24, 'PUBLISHED', now() - interval '6 days', now() - interval '1 day'),
-  ('00000000-0000-0000-0000-000000000402', '00000000-0000-0000-0000-000000000301', '00000000-0000-0000-0000-000000000101', '00000000-0000-0000-0000-000000000202',
+  ('00000000-0000-0000-0000-000000000402', '00000000-0000-0000-0000-000000000101', '00000000-0000-0000-0000-000000000202',
    'PostgreSQL Query Tuning Notes', 'Practical indexing, EXPLAIN workflow, and query anti-patterns.', 15.50, 'demo/postgres-query-tuning.pdf',
    'application/pdf', 327680, 'demo-checksum-402', 31, 'PUBLISHED', now() - interval '5 days', now() - interval '1 day'),
-  ('00000000-0000-0000-0000-000000000403', '00000000-0000-0000-0000-000000000302', '00000000-0000-0000-0000-000000000102', '00000000-0000-0000-0000-000000000203',
+  ('00000000-0000-0000-0000-000000000403', '00000000-0000-0000-0000-000000000102', '00000000-0000-0000-0000-000000000203',
    'Feature Store Design Cheatsheet', 'Data freshness, offline/online parity, and ownership guardrails.', 18.00, 'demo/feature-store-design.pdf',
    'application/pdf', 286720, 'demo-checksum-403', 28, 'PUBLISHED', now() - interval '4 days', now() - interval '1 day'),
-  ('00000000-0000-0000-0000-000000000404', '00000000-0000-0000-0000-000000000302', '00000000-0000-0000-0000-000000000102', '00000000-0000-0000-0000-000000000203',
+  ('00000000-0000-0000-0000-000000000404', '00000000-0000-0000-0000-000000000102', '00000000-0000-0000-0000-000000000203',
    'MLOps Deployment Runbook', 'CI/CD, model rollout strategies, and incident response playbook.', 21.00, 'demo/mlops-deployment-runbook.pdf',
    'application/pdf', 409600, 'demo-checksum-404', 36, 'PUBLISHED', now() - interval '3 days', now() - interval '1 day')
 on conflict (id) do nothing;
 
-insert into note_tags (note_id, tag)
+insert into tags (id, slug, name, created_at, updated_at)
 values
-  ('00000000-0000-0000-0000-000000000401', 'spring'),
-  ('00000000-0000-0000-0000-000000000401', 'security'),
-  ('00000000-0000-0000-0000-000000000401', 'api'),
-  ('00000000-0000-0000-0000-000000000402', 'postgresql'),
-  ('00000000-0000-0000-0000-000000000402', 'performance'),
-  ('00000000-0000-0000-0000-000000000402', 'database'),
-  ('00000000-0000-0000-0000-000000000403', 'ml'),
-  ('00000000-0000-0000-0000-000000000403', 'architecture'),
-  ('00000000-0000-0000-0000-000000000404', 'mlops'),
-  ('00000000-0000-0000-0000-000000000404', 'deployment')
-on conflict (note_id, tag) do nothing;
+  ('00000000-0000-0000-0000-000000000501', 'spring',       'Spring',       now(), now()),
+  ('00000000-0000-0000-0000-000000000502', 'security',     'Security',     now(), now()),
+  ('00000000-0000-0000-0000-000000000503', 'api',          'Api',          now(), now()),
+  ('00000000-0000-0000-0000-000000000504', 'postgresql',   'Postgresql',   now(), now()),
+  ('00000000-0000-0000-0000-000000000505', 'performance',  'Performance',  now(), now()),
+  ('00000000-0000-0000-0000-000000000506', 'database',     'Database',     now(), now()),
+  ('00000000-0000-0000-0000-000000000507', 'ml',           'Ml',           now(), now()),
+  ('00000000-0000-0000-0000-000000000508', 'architecture', 'Architecture', now(), now()),
+  ('00000000-0000-0000-0000-000000000509', 'mlops',        'Mlops',        now(), now()),
+  ('00000000-0000-0000-0000-000000000510', 'deployment',   'Deployment',   now(), now())
+on conflict (slug) do nothing;
+
+insert into note_tags (note_id, tag_id)
+values
+  ('00000000-0000-0000-0000-000000000401', '00000000-0000-0000-0000-000000000501'),
+  ('00000000-0000-0000-0000-000000000401', '00000000-0000-0000-0000-000000000502'),
+  ('00000000-0000-0000-0000-000000000401', '00000000-0000-0000-0000-000000000503'),
+  ('00000000-0000-0000-0000-000000000402', '00000000-0000-0000-0000-000000000504'),
+  ('00000000-0000-0000-0000-000000000402', '00000000-0000-0000-0000-000000000505'),
+  ('00000000-0000-0000-0000-000000000402', '00000000-0000-0000-0000-000000000506'),
+  ('00000000-0000-0000-0000-000000000403', '00000000-0000-0000-0000-000000000507'),
+  ('00000000-0000-0000-0000-000000000403', '00000000-0000-0000-0000-000000000508'),
+  ('00000000-0000-0000-0000-000000000404', '00000000-0000-0000-0000-000000000509'),
+  ('00000000-0000-0000-0000-000000000404', '00000000-0000-0000-0000-000000000510')
+on conflict (note_id, tag_id) do nothing;

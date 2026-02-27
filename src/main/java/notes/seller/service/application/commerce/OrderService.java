@@ -4,14 +4,11 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import notes.seller.service.domain.catalog.CourseStatus;
 import notes.seller.service.domain.catalog.NoteStatus;
 import notes.seller.service.domain.commerce.ItemType;
 import notes.seller.service.domain.commerce.OrderStatus;
 import notes.seller.service.domain.commerce.PaymentProvider;
 import notes.seller.service.domain.commerce.PaymentStatus;
-import notes.seller.service.persistence.catalog.CourseEntity;
-import notes.seller.service.persistence.catalog.CourseRepository;
 import notes.seller.service.persistence.catalog.NoteEntity;
 import notes.seller.service.persistence.catalog.NoteRepository;
 import notes.seller.service.persistence.commerce.OrderEntity;
@@ -29,18 +26,15 @@ import org.springframework.web.server.ResponseStatusException;
 @Transactional
 public class OrderService {
 	private final OrderRepository orderRepository;
-	private final CourseRepository courseRepository;
 	private final NoteRepository noteRepository;
 	private final UserRepository userRepository;
 	private final EntitlementService entitlementService;
 
 	public OrderService(OrderRepository orderRepository,
-					CourseRepository courseRepository,
 					NoteRepository noteRepository,
 					UserRepository userRepository,
 					EntitlementService entitlementService) {
 		this.orderRepository = orderRepository;
-		this.courseRepository = courseRepository;
 		this.noteRepository = noteRepository;
 		this.userRepository = userRepository;
 		this.entitlementService = entitlementService;
@@ -103,26 +97,13 @@ public class OrderService {
 	private void grantEntitlements(OrderEntity order) {
 		UserEntity client = order.getClient();
 		for (OrderItemEntity item : order.getItems()) {
-			if (item.getItemType() == ItemType.COURSE) {
-				entitlementService.grantIfMissing(client, ItemType.COURSE, item.getItemId());
-				List<NoteEntity> notes = noteRepository.findByCourseId(item.getItemId());
-				for (NoteEntity note : notes) {
-					entitlementService.grantIfMissing(client, ItemType.NOTE, note.getId());
-				}
-			} else if (item.getItemType() == ItemType.NOTE) {
-				entitlementService.grantIfMissing(client, ItemType.NOTE, item.getItemId());
-			}
+			entitlementService.grantIfMissing(client, ItemType.NOTE, item.getItemId());
 		}
 	}
 
 	private BigDecimal resolvePrice(OrderItemCommand item) {
 		if (item.itemType() == ItemType.COURSE) {
-			CourseEntity course = courseRepository.findById(item.itemId())
-					.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Course not found"));
-			if (course.getStatus() != CourseStatus.PUBLISHED) {
-				throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Course is not available");
-			}
-			return course.getPrice();
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "COURSE item type is no longer supported");
 		}
 		if (item.itemType() == ItemType.NOTE) {
 			NoteEntity note = noteRepository.findById(item.itemId())

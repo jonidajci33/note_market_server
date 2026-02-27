@@ -8,12 +8,9 @@ import java.util.List;
 import java.util.UUID;
 import notes.seller.service.application.commerce.OrderItemCommand;
 import notes.seller.service.application.commerce.OrderService;
-import notes.seller.service.domain.catalog.CourseStatus;
 import notes.seller.service.domain.catalog.NoteStatus;
 import notes.seller.service.domain.commerce.ItemType;
 import notes.seller.service.domain.commerce.OrderStatus;
-import notes.seller.service.persistence.catalog.CourseEntity;
-import notes.seller.service.persistence.catalog.CourseRepository;
 import notes.seller.service.persistence.catalog.NicheEntity;
 import notes.seller.service.persistence.catalog.NicheRepository;
 import notes.seller.service.persistence.catalog.NoteEntity;
@@ -37,8 +34,6 @@ import org.springframework.web.server.ResponseStatusException;
 class OrderServiceIT extends AbstractPostgresIT {
 	@Autowired
 	private OrderService orderService;
-	@Autowired
-	private CourseRepository courseRepository;
 	@Autowired
 	private NoteRepository noteRepository;
 	@Autowired
@@ -78,24 +73,18 @@ class OrderServiceIT extends AbstractPostgresIT {
 		UserEntity client = userRepository.save(dataFactory.aClientUser());
 		UserEntity seller = userRepository.save(dataFactory.aSellerUser());
 		NicheEntity niche = nicheRepository.save(dataFactory.aNiche());
-		CourseEntity course = dataFactory.aCourse(seller, niche);
-		course.setStatus(CourseStatus.PUBLISHED);
-		course.setPrice(new BigDecimal("50.00"));
-		courseRepository.save(course);
-		NoteEntity note1 = dataFactory.aNote(seller, niche);
-		note1.setCourse(course);
-		noteRepository.save(note1);
-		NoteEntity note2 = dataFactory.aNote(seller, niche);
-		note2.setCourse(course);
-		noteRepository.save(note2);
+		NoteEntity note = dataFactory.aNote(seller, niche);
+		note.setStatus(NoteStatus.PUBLISHED);
+		note.setPrice(new BigDecimal("15.00"));
+		noteRepository.save(note);
 
 		OrderEntity order = orderService.createOrder(client.getId(),
-				List.of(new OrderItemCommand(ItemType.COURSE, course.getId())));
+				List.of(new OrderItemCommand(ItemType.NOTE, note.getId())));
 
 		OrderEntity paid = orderService.payOrder(client.getId(), order.getId());
 
 		assertThat(paid.getStatus()).isEqualTo(OrderStatus.PAID);
-		assertThat(entitlementRepository.findByClientId(client.getId())).hasSize(3);
+		assertThat(entitlementRepository.findByClientId(client.getId())).hasSize(1);
 	}
 
 	@Test

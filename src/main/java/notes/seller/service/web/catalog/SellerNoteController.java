@@ -2,16 +2,20 @@ package notes.seller.service.web.catalog;
 
 import jakarta.validation.Valid;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import notes.seller.service.application.approval.NoteApprovalService;
 import notes.seller.service.application.catalog.NoteService;
 import notes.seller.service.application.catalog.UploadSession;
 import notes.seller.service.persistence.catalog.NoteEntity;
+import notes.seller.service.persistence.catalog.TagEntity;
 import notes.seller.service.security.SecurityUtils;
 import notes.seller.service.web.catalog.dto.NoteCreateRequest;
 import notes.seller.service.web.catalog.dto.NoteResponse;
 import notes.seller.service.web.catalog.dto.NoteUpdateRequest;
 import notes.seller.service.web.catalog.dto.NoteUploadRequest;
+import notes.seller.service.web.catalog.dto.TagInfo;
 import notes.seller.service.web.catalog.dto.UploadUrlResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,8 +51,8 @@ public class SellerNoteController {
 		UUID sellerId = SecurityUtils.getUserId(authentication);
 		log.info("Created Note: kind=NOTE sellerId={} ",
 				sellerId);
-		NoteEntity note = noteService.create(sellerId, request.nicheId(), request.courseId(), request.title(), request.description(),
-				request.price(), request.tags());
+		NoteEntity note = noteService.create(sellerId, request.nicheId(), request.title(), request.description(),
+				request.price(), request.tagIds());
 		return toResponse(note);
 	}
 
@@ -57,8 +61,8 @@ public class SellerNoteController {
 							  @Valid @RequestBody NoteUpdateRequest request,
 							  Authentication authentication) {
 		UUID sellerId = SecurityUtils.getUserId(authentication);
-		NoteEntity note = noteService.update(sellerId, id, request.nicheId(), request.courseId(), request.title(),
-				request.description(), request.price(), request.tags());
+		NoteEntity note = noteService.update(sellerId, id, request.nicheId(), request.title(),
+				request.description(), request.price(), request.tagIds());
 		return toResponse(note);
 	}
 
@@ -98,6 +102,15 @@ public class SellerNoteController {
 		return new UploadUrlResponse(session.presignedUrl().url(), session.fileKey(), session.presignedUrl().expiresAt());
 	}
 
+	private Set<TagInfo> toTagInfoSet(Set<TagEntity> tags) {
+		if (tags == null) {
+			return Set.of();
+		}
+		return tags.stream()
+				.map(t -> new TagInfo(t.getId(), t.getName(), t.getSlug()))
+				.collect(Collectors.toSet());
+	}
+
 	private NoteResponse toResponse(NoteEntity note) {
 		int remaining = Math.max(0, 4 - note.getSubmissionCount());
 		return new NoteResponse(
@@ -105,13 +118,12 @@ public class SellerNoteController {
 				note.getSeller().getId(),
 				note.getNiche().getId(),
 				note.getNiche().getCategory().getId(),
-				note.getCourse() == null ? null : note.getCourse().getId(),
 				note.getTitle(),
 				note.getDescription(),
 				noteService.resolveCoverImageUrl(note),
 				note.getPrice(),
 				note.getStatus(),
-				note.getTags(),
+				toTagInfoSet(note.getTags()),
 				note.getCreatedAt(),
 				note.getRejectionReason(),
 				note.getSubmissionCount(),

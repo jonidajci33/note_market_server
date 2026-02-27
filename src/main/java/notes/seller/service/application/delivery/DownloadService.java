@@ -42,9 +42,6 @@ public class DownloadService {
 		if (entitlementService.hasEntitlement(clientId, ItemType.NOTE, note.getId())) {
 			return true;
 		}
-		if (note.getCourse() != null) {
-			return entitlementService.hasEntitlement(clientId, ItemType.COURSE, note.getCourse().getId());
-		}
 		return false;
 	}
 }

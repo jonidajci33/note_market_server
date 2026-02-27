@@ -2,23 +2,24 @@ package notes.seller.service.web.catalog;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import notes.seller.service.application.catalog.CatalogQueryService;
-import notes.seller.service.application.catalog.CourseService;
 import notes.seller.service.application.catalog.NoteService;
 import notes.seller.service.common.PageResponse;
 import notes.seller.service.common.SortOption;
-import notes.seller.service.persistence.catalog.CourseEntity;
 import notes.seller.service.persistence.catalog.NoteEntity;
-import notes.seller.service.web.catalog.dto.CourseResponse;
-import notes.seller.service.web.catalog.dto.CourseSummaryResponse;
+import notes.seller.service.persistence.catalog.TagEntity;
 import notes.seller.service.persistence.identity.SellerProfileEntity;
 import notes.seller.service.web.catalog.dto.NoteDetailResponse;
 import notes.seller.service.web.catalog.dto.NoteResponse;
 import notes.seller.service.web.catalog.dto.NoteSummaryResponse;
+import notes.seller.service.web.catalog.dto.TagInfo;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,16 +28,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/v1")
+@Transactional(readOnly = true)
 public class CatalogController {
 	private final CatalogQueryService catalogQueryService;
 	private final NoteService noteService;
-	private final CourseService courseService;
 
-	public CatalogController(CatalogQueryService catalogQueryService, NoteService noteService,
-							 CourseService courseService) {
+	public CatalogController(CatalogQueryService catalogQueryService, NoteService noteService) {
 		this.catalogQueryService = catalogQueryService;
 		this.noteService = noteService;
-		this.courseService = courseService;
 	}
 
 	@GetMapping("/notes")
@@ -46,7 +45,7 @@ public class CatalogController {
 			@RequestParam(required = false) BigDecimal minPrice,
 			@RequestParam(required = false) BigDecimal maxPrice,
 			@RequestParam(required = false) String q,
-			@RequestParam(required = false) List<String> tags,
+			@RequestParam(required = false) List<UUID> tagIds,
 			@RequestParam(required = false, defaultValue = "CREATED_AT_DESC") String sort,
 			@RequestParam(required = false, defaultValue = "0") int page,
 			@RequestParam(required = false, defaultValue = "20") int size
@@ -54,7 +53,7 @@ public class CatalogController {
 		int pageSize = Math.min(Math.max(size, 1), 100);
 		SortOption sortOption = SortOption.from(sort);
 		Pageable pageable = PageRequest.of(Math.max(page, 0), pageSize, sortOption.toSort());
-		Page<NoteEntity> result = catalogQueryService.findNotes(nicheId, sellerId, minPrice, maxPrice, q, tags, pageable);
+		Page<NoteEntity> result = catalogQueryService.findNotes(nicheId, sellerId, minPrice, maxPrice, q, tagIds, pageable);
 		return PageResponse.from(result.map(this::toNoteSummary));
 	}
 
@@ -64,28 +63,13 @@ public class CatalogController {
 		return toNoteDetailResponse(note);
 	}
 
-	@GetMapping("/courses")
-	public PageResponse<CourseSummaryResponse> listCourses(
-			@RequestParam(required = false) UUID nicheId,
-			@RequestParam(required = false) UUID sellerId,
-			@RequestParam(required = false) BigDecimal minPrice,
-			@RequestParam(required = false) BigDecimal maxPrice,
-			@RequestParam(required = false) String q,
-			@RequestParam(required = false, defaultValue = "CREATED_AT_DESC") String sort,
-			@RequestParam(required = false, defaultValue = "0") int page,
-			@RequestParam(required = false, defaultValue = "20") int size
-	) {
-		int pageSize = Math.min(Math.max(size, 1), 100);
-		SortOption sortOption = SortOption.from(sort);
-		Pageable pageable = PageRequest.of(Math.max(page, 0), pageSize, sortOption.toSort());
-		Page<CourseEntity> result = catalogQueryService.findCourses(nicheId, sellerId, minPrice, maxPrice, q, pageable);
-		return PageResponse.from(result.map(this::toCourseSummary));
-	}
-
-	@GetMapping("/courses/{id}")
-	public CourseResponse getCourse(@PathVariable("id") UUID id) {
-		CourseEntity course = courseService.getPublished(id);
-		return toCourseResponse(course);
+	private Set<TagInfo> toTagInfoSet(Set<TagEntity> tags) {
+		if (tags == null) {
+			return Set.of();
+		}
+		return tags.stream()
+				.map(t -> new TagInfo(t.getId(), t.getName(), t.getSlug()))
+				.collect(Collectors.toSet());
 	}
 
 	private NoteSummaryResponse toNoteSummary(NoteEntity note) {
@@ -94,12 +78,11 @@ public class CatalogController {
 				note.getSeller().getId(),
 				note.getNiche().getId(),
 				note.getNiche().getCategory().getId(),
-				note.getCourse() == null ? null : note.getCourse().getId(),
 				note.getTitle(),
 				noteService.resolveCoverImageUrl(note),
 				note.getPrice(),
 				note.getStatus(),
-				note.getTags(),
+				toTagInfoSet(note.getTags()),
 				note.getCreatedAt(),
 				note.getAverageRating(),
 				note.getRatingCount()
@@ -113,13 +96,12 @@ public class CatalogController {
 				note.getSeller().getId(),
 				note.getNiche().getId(),
 				note.getNiche().getCategory().getId(),
-				note.getCourse() == null ? null : note.getCourse().getId(),
 				note.getTitle(),
 				note.getDescription(),
 				noteService.resolveCoverImageUrl(note),
 				note.getPrice(),
 				note.getStatus(),
-				note.getTags(),
+				toTagInfoSet(note.getTags()),
 				note.getCreatedAt(),
 				note.getRejectionReason(),
 				note.getSubmissionCount(),
@@ -157,13 +139,12 @@ public class CatalogController {
 				note.getSeller().getId(),
 				note.getNiche().getId(),
 				note.getNiche().getCategory().getId(),
-				note.getCourse() == null ? null : note.getCourse().getId(),
 				note.getTitle(),
 				note.getDescription(),
 				noteService.resolveCoverImageUrl(note),
 				note.getPrice(),
 				note.getStatus(),
-				note.getTags(),
+				toTagInfoSet(note.getTags()),
 				note.getCreatedAt(),
 				note.getPages(),
 				note.getContentType(),
@@ -174,28 +155,4 @@ public class CatalogController {
 		);
 	}
 
-	private CourseSummaryResponse toCourseSummary(CourseEntity course) {
-		return new CourseSummaryResponse(
-				course.getId(),
-				course.getSeller().getId(),
-				course.getNiche().getId(),
-				course.getTitle(),
-				course.getPrice(),
-				course.getStatus(),
-				course.getCreatedAt()
-		);
-	}
-
-	private CourseResponse toCourseResponse(CourseEntity course) {
-		return new CourseResponse(
-				course.getId(),
-				course.getSeller().getId(),
-				course.getNiche().getId(),
-				course.getTitle(),
-				course.getDescription(),
-				course.getPrice(),
-				course.getStatus(),
-				course.getCreatedAt()
-		);
-	}
 }

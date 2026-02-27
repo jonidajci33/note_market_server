@@ -44,7 +44,7 @@ class SellerNoteControllerE2EIT extends AbstractPostgresIT {
 		TestDataFactory dataFactory = TestDataFactory.seeded();
 		UserEntity seller = userRepository.save(dataFactory.aSellerUser());
 		NicheEntity niche = nicheRepository.save(dataFactory.aNiche());
-		NoteCreateRequest request = new NoteCreateRequest(niche.getId(), null, "Note title", "Desc", null, null);
+		NoteCreateRequest request = new NoteCreateRequest(niche.getId(), "Note title", "Desc", null, null);
 
 		mockMvc.perform(post("/api/v1/seller/notes")
 						.with(jwtWithRole(seller.getId(), "SELLER"))

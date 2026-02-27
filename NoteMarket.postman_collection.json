@@ -1,0 +1,2034 @@
+{
+	"info": {
+		"_postman_id": "notemarket-api-collection",
+		"name": "NoteMarket API",
+		"description": "Complete API collection for the NoteMarket backend. Covers authentication, catalog browsing, seller management, admin moderation, commerce, delivery, ratings, and system endpoints.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "token",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Register",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"Password123!\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/register",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "auth", "register"]
+						},
+						"description": "Register a new client user account."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Register Seller",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"seller@example.com\",\n  \"password\": \"Password123!\",\n  \"displayName\": \"Test Seller\",\n  \"bio\": \"Study notes creator\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/register-seller",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "auth", "register-seller"]
+						},
+						"description": "Register a new seller account with display name and bio."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Login (Client)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"Password123!\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "auth", "login"]
+						},
+						"description": "Login as a client user. The JWT token is automatically captured into the collection variable {{token}}."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.token) {",
+									"    pm.collectionVariables.set(\"token\", jsonData.token);",
+									"}",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Login (Seller)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"seller@example.com\",\n  \"password\": \"Password123!\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "auth", "login"]
+						},
+						"description": "Login as a seller user. The JWT token is automatically captured into the collection variable {{token}}."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.token) {",
+									"    pm.collectionVariables.set(\"token\", jsonData.token);",
+									"}",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Login (Admin)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"Password123!\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "auth", "login"]
+						},
+						"description": "Login as an admin user. The JWT token is automatically captured into the collection variable {{token}}."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.token) {",
+									"    pm.collectionVariables.set(\"token\", jsonData.token);",
+									"}",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "User Profile",
+			"item": [
+				{
+					"name": "Get My Profile",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/me",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "me"]
+						},
+						"description": "Get the profile of the currently authenticated user."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Catalog - Notes",
+			"item": [
+				{
+					"name": "List Notes",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/notes?sort=CREATED_AT_DESC&page=0&size=20",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "notes"],
+							"query": [
+								{
+									"key": "nicheId",
+									"value": "00000000-0000-0000-0000-000000000001",
+									"disabled": true
+								},
+								{
+									"key": "sellerId",
+									"value": "00000000-0000-0000-0000-000000000001",
+									"disabled": true
+								},
+								{
+									"key": "minPrice",
+									"value": "0",
+									"disabled": true
+								},
+								{
+									"key": "maxPrice",
+									"value": "100",
+									"disabled": true
+								},
+								{
+									"key": "q",
+									"value": "algorithms",
+									"disabled": true
+								},
+								{
+									"key": "tags",
+									"value": "cs",
+									"disabled": true
+								},
+								{
+									"key": "sort",
+									"value": "CREATED_AT_DESC"
+								},
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "20"
+								}
+							]
+						},
+						"description": "Browse the public catalog of approved notes. Supports filtering by niche, seller, price range, search query, and tags."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Get Note",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/notes/:id",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "notes", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "00000000-0000-0000-0000-000000000001",
+									"description": "UUID of the note"
+								}
+							]
+						},
+						"description": "Get the details of a single note by ID."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Catalog - Courses",
+			"item": [
+				{
+					"name": "List Courses",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/courses?sort=CREATED_AT_DESC&page=0&size=20",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "courses"],
+							"query": [
+								{
+									"key": "nicheId",
+									"value": "00000000-0000-0000-0000-000000000001",
+									"disabled": true
+								},
+								{
+									"key": "sellerId",
+									"value": "00000000-0000-0000-0000-000000000001",
+									"disabled": true
+								},
+								{
+									"key": "minPrice",
+									"value": "0",
+									"disabled": true
+								},
+								{
+									"key": "maxPrice",
+									"value": "100",
+									"disabled": true
+								},
+								{
+									"key": "q",
+									"value": "algorithms",
+									"disabled": true
+								},
+								{
+									"key": "sort",
+									"value": "CREATED_AT_DESC"
+								},
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "20"
+								}
+							]
+						},
+						"description": "Browse the public catalog of published courses. Supports filtering by niche, seller, price range, and search query."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Get Course",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/courses/:id",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "courses", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "00000000-0000-0000-0000-000000000001",
+									"description": "UUID of the course"
+								}
+							]
+						},
+						"description": "Get the details of a single course by ID."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Categories",
+			"item": [
+				{
+					"name": "List Categories",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/categories",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "categories"]
+						},
+						"description": "List all categories. Public endpoint."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Create Category",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"slug\": \"computer-science\",\n  \"name\": \"Computer Science\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/categories",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "categories"]
+						},
+						"description": "Create a new category. Requires SYSADMIN role."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Update Category",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"slug\": \"comp-sci\",\n  \"name\": \"Comp Sci\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/categories/:id",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "categories", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "00000000-0000-0000-0000-000000000001",
+									"description": "UUID of the category"
+								}
+							]
+						},
+						"description": "Update an existing category. Requires SYSADMIN role."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Delete Category",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/categories/:id",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "categories", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "00000000-0000-0000-0000-000000000001",
+									"description": "UUID of the category"
+								}
+							]
+						},
+						"description": "Delete a category. Requires SYSADMIN role."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 204\", function () {",
+									"    pm.response.to.have.status(204);",
+									"});"
+								]
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Niches",
+			"item": [
+				{
+					"name": "List Niches",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/niches",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "niches"],
+							"query": [
+								{
+									"key": "categoryId",
+									"value": "00000000-0000-0000-0000-000000000001",
+									"disabled": true
+								}
+							]
+						},
+						"description": "List all niches. Optionally filter by categoryId."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Create Niche",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"slug\": \"data-structures\",\n  \"name\": \"Data Structures\",\n  \"categoryId\": \"00000000-0000-0000-0000-000000000001\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/niches",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "niches"]
+						},
+						"description": "Create a new niche under a category. Requires SYSADMIN role."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Update Niche",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"slug\": \"algorithms\",\n  \"name\": \"Algorithms\",\n  \"categoryId\": \"00000000-0000-0000-0000-000000000001\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/niches/:id",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "niches", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "00000000-0000-0000-0000-000000000001",
+									"description": "UUID of the niche"
+								}
+							]
+						},
+						"description": "Update an existing niche. Requires SYSADMIN role."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Delete Niche",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/niches/:id",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "niches", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "00000000-0000-0000-0000-000000000001",
+									"description": "UUID of the niche"
+								}
+							]
+						},
+						"description": "Delete a niche. Requires SYSADMIN role."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 204\", function () {",
+									"    pm.response.to.have.status(204);",
+									"});"
+								]
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Seller - Notes",
+			"item": [
+				{
+					"name": "List My Notes",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/seller/notes",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "seller", "notes"]
+						},
+						"description": "List all notes belonging to the authenticated seller."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Create Note",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nicheId\": \"00000000-0000-0000-0000-000000000001\",\n  \"title\": \"Intro to Algorithms\",\n  \"description\": \"Comprehensive study notes covering sorting, searching, and graph algorithms\",\n  \"price\": 9.99,\n  \"tags\": [\"algorithms\", \"cs\"]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/seller/notes",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "seller", "notes"]
+						},
+						"description": "Create a new note as the authenticated seller."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Update Note",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Advanced Algorithms\",\n  \"description\": \"Updated notes with more examples\",\n  \"price\": 14.99,\n  \"tags\": [\"algorithms\", \"advanced\"]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/seller/notes/:id",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "seller", "notes", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "00000000-0000-0000-0000-000000000001",
+									"description": "UUID of the note"
+								}
+							]
+						},
+						"description": "Update an existing note owned by the authenticated seller."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Submit Note for Approval",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/seller/notes/:id/submit",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "seller", "notes", ":id", "submit"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "00000000-0000-0000-0000-000000000001",
+									"description": "UUID of the note"
+								}
+							]
+						},
+						"description": "Submit a draft note for admin approval."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Get Upload URL",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"contentType\": \"application/pdf\",\n  \"fileSize\": 1048576,\n  \"checksumSha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/seller/notes/:id/upload-url",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "seller", "notes", ":id", "upload-url"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "00000000-0000-0000-0000-000000000001",
+									"description": "UUID of the note"
+								}
+							]
+						},
+						"description": "Generate a presigned upload URL for the note's PDF file."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Get Cover Upload URL",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"contentType\": \"image/jpeg\",\n  \"fileSize\": 204800\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/seller/notes/:id/cover-upload-url",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "seller", "notes", ":id", "cover-upload-url"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "00000000-0000-0000-0000-000000000001",
+									"description": "UUID of the note"
+								}
+							]
+						},
+						"description": "Generate a presigned upload URL for the note's cover image."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Seller - Courses",
+			"item": [
+				{
+					"name": "Create Course",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nicheId\": \"00000000-0000-0000-0000-000000000001\",\n  \"title\": \"Algorithms 101\",\n  \"description\": \"Complete algorithms course\",\n  \"price\": 29.99\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/seller/courses",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "seller", "courses"]
+						},
+						"description": "Create a new course as the authenticated seller."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Update Course",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Algorithms 201\",\n  \"description\": \"Advanced course\",\n  \"price\": 39.99\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/seller/courses/:id",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "seller", "courses", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "00000000-0000-0000-0000-000000000001",
+									"description": "UUID of the course"
+								}
+							]
+						},
+						"description": "Update an existing course owned by the authenticated seller."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Publish Course",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/seller/courses/:id/publish",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "seller", "courses", ":id", "publish"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "00000000-0000-0000-0000-000000000001",
+									"description": "UUID of the course"
+								}
+							]
+						},
+						"description": "Publish a draft course to make it publicly visible."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Admin - Notes",
+			"item": [
+				{
+					"name": "List Pending Notes",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/admin/notes?status=PENDING_APPROVAL&page=0&size=20",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "admin", "notes"],
+							"query": [
+								{
+									"key": "status",
+									"value": "PENDING_APPROVAL"
+								},
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "20"
+								}
+							]
+						},
+						"description": "List notes pending admin approval. Requires SYSADMIN role."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Get Note Detail",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/admin/notes/:id",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "admin", "notes", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "00000000-0000-0000-0000-000000000001",
+									"description": "UUID of the note"
+								}
+							]
+						},
+						"description": "Get detailed information about a specific note for admin review. Requires SYSADMIN role."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Approve Note",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/admin/notes/:id/approve",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "admin", "notes", ":id", "approve"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "00000000-0000-0000-0000-000000000001",
+									"description": "UUID of the note"
+								}
+							]
+						},
+						"description": "Approve a note that is pending approval. Requires SYSADMIN role."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Reject Note",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"reason\": \"Content quality does not meet standards. Please improve formatting and add references.\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/admin/notes/:id/reject",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "admin", "notes", ":id", "reject"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "00000000-0000-0000-0000-000000000001",
+									"description": "UUID of the note"
+								}
+							]
+						},
+						"description": "Reject a note that is pending approval with a reason. Requires SYSADMIN role."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Commerce - Orders",
+			"item": [
+				{
+					"name": "Create Order",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"items\": [\n    {\n      \"itemType\": \"NOTE\",\n      \"itemId\": \"00000000-0000-0000-0000-000000000001\"\n    }\n  ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/orders",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "orders"]
+						},
+						"description": "Create a new order to purchase notes or courses."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Pay Order",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/orders/:id/pay",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "orders", ":id", "pay"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "00000000-0000-0000-0000-000000000001",
+									"description": "UUID of the order"
+								}
+							]
+						},
+						"description": "Pay for an existing order."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Get Order",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/orders/:id",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "orders", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "00000000-0000-0000-0000-000000000001",
+									"description": "UUID of the order"
+								}
+							]
+						},
+						"description": "Get details of a specific order."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Commerce - Library",
+			"item": [
+				{
+					"name": "Get My Library",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/me/library",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "me", "library"]
+						},
+						"description": "Get the library of purchased items for the authenticated user."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Delivery - Downloads",
+			"item": [
+				{
+					"name": "Download Note",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/notes/:id/download",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "notes", ":id", "download"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "00000000-0000-0000-0000-000000000001",
+									"description": "UUID of the note"
+								}
+							]
+						},
+						"description": "Generate a download URL for a purchased note."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Ratings",
+			"item": [
+				{
+					"name": "Create Rating",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"rating\": 5,\n  \"reviewText\": \"Excellent notes, very detailed and well-organized.\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/notes/:noteId/ratings",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "notes", ":noteId", "ratings"],
+							"variable": [
+								{
+									"key": "noteId",
+									"value": "00000000-0000-0000-0000-000000000001",
+									"description": "UUID of the note"
+								}
+							]
+						},
+						"description": "Create a rating and review for a purchased note."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Update Rating",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"rating\": 4,\n  \"reviewText\": \"Good but could use more examples.\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/notes/:noteId/ratings",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "notes", ":noteId", "ratings"],
+							"variable": [
+								{
+									"key": "noteId",
+									"value": "00000000-0000-0000-0000-000000000001",
+									"description": "UUID of the note"
+								}
+							]
+						},
+						"description": "Update the authenticated user's rating for a note."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Delete Rating",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/notes/:noteId/ratings",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "notes", ":noteId", "ratings"],
+							"variable": [
+								{
+									"key": "noteId",
+									"value": "00000000-0000-0000-0000-000000000001",
+									"description": "UUID of the note"
+								}
+							]
+						},
+						"description": "Delete the authenticated user's rating for a note."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 204\", function () {",
+									"    pm.response.to.have.status(204);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "List Ratings",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/notes/:noteId/ratings?page=0&size=20",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "notes", ":noteId", "ratings"],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "20"
+								}
+							],
+							"variable": [
+								{
+									"key": "noteId",
+									"value": "00000000-0000-0000-0000-000000000001",
+									"description": "UUID of the note"
+								}
+							]
+						},
+						"description": "List all ratings for a specific note. Public endpoint."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Rating Summary",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/notes/:noteId/ratings/summary",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "notes", ":noteId", "ratings", "summary"],
+							"variable": [
+								{
+									"key": "noteId",
+									"value": "00000000-0000-0000-0000-000000000001",
+									"description": "UUID of the note"
+								}
+							]
+						},
+						"description": "Get the rating summary (average, count, distribution) for a note. Public endpoint."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "My Rating",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/notes/:noteId/ratings/mine",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "notes", ":noteId", "ratings", "mine"],
+							"variable": [
+								{
+									"key": "noteId",
+									"value": "00000000-0000-0000-0000-000000000001",
+									"description": "UUID of the note"
+								}
+							]
+						},
+						"description": "Get the authenticated user's own rating for a specific note."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "System",
+			"item": [
+				{
+					"name": "Connectivity Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/system/connectivity",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "system", "connectivity"]
+						},
+						"description": "Health check endpoint to verify API connectivity. Public endpoint."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Local Storage (Dev)",
+			"item": [
+				{
+					"name": "Upload File",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/octet-stream"
+							}
+						],
+						"body": {
+							"mode": "file",
+							"file": {
+								"src": ""
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/storage/local/upload/:token",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "storage", "local", "upload", ":token"],
+							"variable": [
+								{
+									"key": "token",
+									"value": "example-upload-token",
+									"description": "Upload token from the presigned URL"
+								}
+							]
+						},
+						"description": "Upload a file to local storage using a presigned upload token. Used in development mode. Body should be the raw binary file."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Download File",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/storage/local/download/:token?key=example-file-key",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "storage", "local", "download", ":token"],
+							"query": [
+								{
+									"key": "key",
+									"value": "example-file-key"
+								}
+							],
+							"variable": [
+								{
+									"key": "token",
+									"value": "example-download-token",
+									"description": "Download token from the presigned URL"
+								}
+							]
+						},
+						"description": "Download a file from local storage using a presigned download token. Used in development mode."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					]
+				}
+			]
+		}
+	]
+}

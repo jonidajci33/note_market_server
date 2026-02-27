@@ -1,5 +1,6 @@
 package notes.seller.service.application.catalog;
 
+import jakarta.persistence.criteria.JoinType;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Locale;
@@ -59,13 +60,23 @@ public final class NoteSpecifications {
 		);
 	}
 
-	public static Specification<NoteEntity> hasTags(List<String> tags) {
-		if (tags == null || tags.isEmpty()) {
+	public static Specification<NoteEntity> hasTags(List<UUID> tagIds) {
+		if (tagIds == null || tagIds.isEmpty()) {
 			return null;
 		}
 		return (root, query, cb) -> {
 			query.distinct(true);
-			return root.join("tags").in(tags);
+			return root.join("tags").get("id").in(tagIds);
+		};
+	}
+
+	public static Specification<NoteEntity> fetchNicheAndCategory() {
+		return (root, query, cb) -> {
+			if (query.getResultType() != Long.class && query.getResultType() != long.class) {
+				var nicheFetch = root.fetch("niche", JoinType.LEFT);
+				nicheFetch.fetch("category", JoinType.LEFT);
+			}
+			return cb.conjunction();
 		};
 	}
 }

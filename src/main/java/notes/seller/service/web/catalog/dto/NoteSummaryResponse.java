@@ -11,12 +11,11 @@ public record NoteSummaryResponse(
 		UUID sellerId,
 		UUID nicheId,
 		UUID categoryId,
-		UUID courseId,
 		String title,
 		String coverImageUrl,
 		BigDecimal price,
 		NoteStatus status,
-		Set<String> tags,
+		Set<TagInfo> tags,
 		Instant createdAt,
 		Double averageRating,
 		int ratingCount

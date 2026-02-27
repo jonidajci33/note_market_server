@@ -11,12 +11,14 @@ import notes.seller.service.application.catalog.NoteService;
 import notes.seller.service.application.catalog.UploadSession;
 import notes.seller.service.integration.storage.PresignedUrl;
 import notes.seller.service.integration.storage.StorageService;
-import notes.seller.service.persistence.catalog.CourseEntity;
-import notes.seller.service.persistence.catalog.CourseRepository;
+import notes.seller.service.persistence.catalog.CategoryEntity;
+import notes.seller.service.persistence.catalog.CategoryRepository;
 import notes.seller.service.persistence.catalog.NicheEntity;
 import notes.seller.service.persistence.catalog.NicheRepository;
 import notes.seller.service.persistence.catalog.NoteEntity;
 import notes.seller.service.persistence.catalog.NoteRepository;
+import notes.seller.service.persistence.catalog.TagEntity;
+import notes.seller.service.persistence.catalog.TagRepository;
 import notes.seller.service.persistence.identity.UserEntity;
 import notes.seller.service.persistence.identity.UserRepository;
 import notes.seller.service.support.AbstractPostgresIT;
@@ -36,11 +38,13 @@ class NoteServiceIT extends AbstractPostgresIT {
 	@Autowired
 	private NoteRepository noteRepository;
 	@Autowired
-	private CourseRepository courseRepository;
-	@Autowired
 	private UserRepository userRepository;
 	@Autowired
 	private NicheRepository nicheRepository;
+	@Autowired
+	private CategoryRepository categoryRepository;
+	@Autowired
+	private TagRepository tagRepository;
 	@MockitoBean
 	private StorageService storageService;
 
@@ -56,45 +60,40 @@ class NoteServiceIT extends AbstractPostgresIT {
 	@Test
 	void create_shouldPersistNoteWithTags() {
 		UserEntity seller = userRepository.save(dataFactory.aSellerUser());
-		NicheEntity niche = nicheRepository.save(dataFactory.aNiche());
+		CategoryEntity category = categoryRepository.save(dataFactory.aCategory());
+		NicheEntity niche = nicheRepository.save(dataFactory.aNiche(category));
+		TagEntity tag1 = tagRepository.save(dataFactory.aTag());
+		TagEntity tag2 = tagRepository.save(dataFactory.aTag());
 
-		NoteEntity note = noteService.create(seller.getId(), niche.getId(), null, "Title", "Desc",
-				new BigDecimal("10.00"), Set.of("java", "spring"));
+		NoteEntity note = noteService.create(seller.getId(), niche.getId(), "Title", "Desc",
+				new BigDecimal("10.00"), Set.of(tag1.getId(), tag2.getId()));
 
 		assertThat(note.getId()).isNotNull();
-		assertThat(note.getTags()).containsExactlyInAnyOrder("java", "spring");
-	}
-
-	@Test
-	void create_shouldIgnoreCourseIdWhenCourseFlowRemoved() {
-		UserEntity seller = userRepository.save(dataFactory.aSellerUser());
-		NicheEntity niche = nicheRepository.save(dataFactory.aNiche());
-		CourseEntity course = courseRepository.save(dataFactory.aCourse(seller, niche));
-
-		NoteEntity created = noteService.create(seller.getId(), niche.getId(), course.getId(), "Title", null,
-				new BigDecimal("10.00"), null);
-
-		assertThat(created.getId()).isNotNull();
-		assertThat(created.getCourse()).isNull();
+		assertThat(note.getTags()).extracting(TagEntity::getId)
+				.containsExactlyInAnyOrder(tag1.getId(), tag2.getId());
 	}
 
 	@Test
 	void update_shouldChangeTitleAndTags() {
 		UserEntity seller = userRepository.save(dataFactory.aSellerUser());
-		NicheEntity niche = nicheRepository.save(dataFactory.aNiche());
+		CategoryEntity category = categoryRepository.save(dataFactory.aCategory());
+		NicheEntity niche = nicheRepository.save(dataFactory.aNiche(category));
+		TagEntity tag = tagRepository.save(dataFactory.aTag());
 		NoteEntity note = noteRepository.save(dataFactory.aNote(seller, niche));
 
-		NoteEntity updated = noteService.update(seller.getId(), note.getId(), null, null, "New Title",
-				"New Desc", new BigDecimal("20.00"), Set.of("tag-a"));
+		NoteEntity updated = noteService.update(seller.getId(), note.getId(), null, "New Title",
+				"New Desc", new BigDecimal("20.00"), Set.of(tag.getId()));
 
 		assertThat(updated.getTitle()).isEqualTo("New Title");
-		assertThat(updated.getTags()).containsExactly("tag-a");
+		assertThat(updated.getTags()).extracting(TagEntity::getId)
+				.containsExactly(tag.getId());
 	}
 
 	@Test
 	void requestUploadUrl_shouldStoreFileMetadata() {
 		UserEntity seller = userRepository.save(dataFactory.aSellerUser());
-		NicheEntity niche = nicheRepository.save(dataFactory.aNiche());
+		CategoryEntity category = categoryRepository.save(dataFactory.aCategory());
+		NicheEntity niche = nicheRepository.save(dataFactory.aNiche(category));
 		NoteEntity note = noteRepository.save(dataFactory.aNote(seller, niche));
 
 		UploadSession session = noteService.requestUploadUrl(seller.getId(), note.getId(), "application/pdf", 1024L, "sha256");
@@ -110,7 +109,8 @@ class NoteServiceIT extends AbstractPostgresIT {
 	@Test
 	void requestCoverUploadUrl_shouldStoreCoverMetadata() {
 		UserEntity seller = userRepository.save(dataFactory.aSellerUser());
-		NicheEntity niche = nicheRepository.save(dataFactory.aNiche());
+		CategoryEntity category = categoryRepository.save(dataFactory.aCategory());
+		NicheEntity niche = nicheRepository.save(dataFactory.aNiche(category));
 		NoteEntity note = noteRepository.save(dataFactory.aNote(seller, niche));
 
 		UploadSession session = noteService.requestCoverUploadUrl(seller.getId(), note.getId(), "image/png", 2048L, "sha256");

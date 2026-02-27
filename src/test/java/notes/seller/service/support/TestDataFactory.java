@@ -9,7 +9,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import net.datafaker.Faker;
-import notes.seller.service.domain.catalog.CourseStatus;
 import notes.seller.service.domain.catalog.NoteStatus;
 import notes.seller.service.domain.commerce.ItemType;
 import notes.seller.service.domain.commerce.OrderStatus;
@@ -17,16 +16,16 @@ import notes.seller.service.domain.commerce.PaymentProvider;
 import notes.seller.service.domain.commerce.PaymentStatus;
 import notes.seller.service.domain.identity.Role;
 import notes.seller.service.domain.identity.UserStatus;
-import notes.seller.service.persistence.catalog.CourseEntity;
+import notes.seller.service.persistence.catalog.CategoryEntity;
 import notes.seller.service.persistence.catalog.NicheEntity;
 import notes.seller.service.persistence.catalog.NoteEntity;
+import notes.seller.service.persistence.catalog.TagEntity;
 import notes.seller.service.persistence.commerce.EntitlementEntity;
 import notes.seller.service.persistence.commerce.OrderEntity;
 import notes.seller.service.persistence.commerce.OrderItemEntity;
 import notes.seller.service.persistence.commerce.PaymentEntity;
 import notes.seller.service.persistence.identity.SellerProfileEntity;
 import notes.seller.service.persistence.identity.UserEntity;
-import notes.seller.service.web.catalog.dto.CourseCreateRequest;
 import notes.seller.service.web.catalog.dto.NicheRequest;
 import notes.seller.service.web.catalog.dto.NoteCreateRequest;
 import notes.seller.service.web.commerce.dto.OrderCreateRequest;
@@ -85,6 +84,14 @@ public final class TestDataFactory {
 		return profile;
 	}
 
+	public CategoryEntity aCategory() {
+		CategoryEntity category = new CategoryEntity();
+		int seed = next();
+		category.setSlug("category-" + seed);
+		category.setName("Category " + seed);
+		return category;
+	}
+
 	public NicheEntity aNiche() {
 		NicheEntity niche = new NicheEntity();
 		int seed = next();
@@ -93,15 +100,18 @@ public final class TestDataFactory {
 		return niche;
 	}
 
-	public CourseEntity aCourse(UserEntity seller, NicheEntity niche) {
-		CourseEntity course = new CourseEntity();
-		course.setSeller(seller);
-		course.setNiche(niche);
-		course.setTitle("Course " + next());
-		course.setDescription(faker.lorem().sentence());
-		course.setPrice(DEFAULT_PRICE);
-		course.setStatus(CourseStatus.DRAFT);
-		return course;
+	public NicheEntity aNiche(CategoryEntity category) {
+		NicheEntity niche = aNiche();
+		niche.setCategory(category);
+		return niche;
+	}
+
+	public TagEntity aTag() {
+		TagEntity tag = new TagEntity();
+		int seed = next();
+		tag.setSlug("tag-" + seed);
+		tag.setName("Tag " + seed);
+		return tag;
 	}
 
 	public NoteEntity aNote(UserEntity seller, NicheEntity niche) {
@@ -112,7 +122,6 @@ public final class TestDataFactory {
 		note.setDescription(faker.lorem().sentence());
 		note.setPrice(DEFAULT_PRICE);
 		note.setStatus(NoteStatus.DRAFT);
-		note.setTags(new HashSet<>(Set.of("tag-" + next(), "tag-" + next())));
 		return note;
 	}
 
@@ -166,12 +175,8 @@ public final class TestDataFactory {
 		return new NicheRequest("niche-" + seed, "Niche " + seed, UUID.fromString("00000000-0000-0000-0000-00000000bb01"));
 	}
 
-	public CourseCreateRequest aCourseCreateRequest(UUID nicheId) {
-		return new CourseCreateRequest(nicheId, "Course " + next(), faker.lorem().sentence(), DEFAULT_PRICE);
-	}
-
 	public NoteCreateRequest aNoteCreateRequest(UUID nicheId) {
-		return new NoteCreateRequest(nicheId, null, "Note " + next(), faker.lorem().sentence(), DEFAULT_PRICE, Set.of("tag-" + next()));
+		return new NoteCreateRequest(nicheId, "Note " + next(), faker.lorem().sentence(), DEFAULT_PRICE, Set.of(UUID.randomUUID()));
 	}
 
 	public OrderCreateRequest anOrderCreateRequest(ItemType itemType, UUID itemId) {
